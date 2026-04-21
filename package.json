@@ -1,4 +1,13 @@
 {
+  "name": "rideflux-root",
+  "version": "1.0.0",
+  "scripts": {
+    "backend-install": "cd backend && npm install",
+    "backend": "cd backend && npm start",
+    "seed": "cd backend && npm run seed",
+    "screenshots": "node screenshot.js",
+    "dev": "npm run backend"
+  },
   "devDependencies": {
     "puppeteer": "^24.42.0"
   }
