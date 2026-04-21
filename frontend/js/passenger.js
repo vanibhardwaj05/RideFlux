@@ -1,0 +1,293 @@
+let user = null;
+let currentRideId = null;
+let socket = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  user = checkAuth(['passenger']);
+  if (!user) return;
+
+  initSocket();
+  loadAvailableCabs();
+  loadAvailableBuses();
+  loadRideHistory();
+
+  document.getElementById('book-cab-form').addEventListener('submit', handleBookCab);
+  document.getElementById('refresh-cabs-btn').addEventListener('click', loadAvailableCabs);
+  document.getElementById('refresh-buses-btn').addEventListener('click', loadAvailableBuses);
+  document.getElementById('open-chat-btn').addEventListener('click', () => openModal('chat-modal'));
+  document.getElementById('chat-form').addEventListener('submit', handleChatSubmit);
+
+  setInterval(() => {
+    loadAvailableCabs();
+    loadAvailableBuses();
+  }, 15000);
+});
+
+function initSocket() {
+  socket = io(SOCKET_URL);
+
+  socket.on('ride-status-update', async (data) => {
+    updateRideUI(data.status);
+    if (data.status === 'accepted') {
+      // Fetch ride details to get OTP
+      try {
+        const ride = await fetchWithAuth(`/cab/${currentRideId}`);
+        updateRideDetails(ride);
+        document.getElementById('otp-display').classList.remove('hidden');
+        document.querySelector('#otp-display span').textContent = ride.otp;
+        document.getElementById('open-chat-btn').classList.remove('hidden');
+        showToast('Driver accepted your ride!', 'success');
+      } catch (err) {
+        console.error(err);
+      }
+    } else if (data.status === 'started') {
+      showToast('Ride started!', 'success');
+      document.getElementById('otp-display').classList.add('hidden');
+    } else if (data.status === 'completed') {
+      showToast('Ride completed! Please pay Cash.', 'success');
+      resetRideUI();
+      loadRideHistory();
+      loadAvailableCabs();
+      closeModal('chat-modal');
+    }
+  });
+
+  socket.on('receive-message', (data) => {
+    appendMessage(data.senderName, data.message, 'other');
+  });
+}
+
+async function handleBookCab(e) {
+  e.preventDefault();
+  const source = document.getElementById('cab-source').value.trim();
+  const destination = document.getElementById('cab-destination').value.trim();
+
+  if (!source || !destination) {
+    return showToast('Enter both source and destination.', 'error');
+  }
+
+  const fare = calculateEstimatedFare(source, destination);
+
+  try {
+    const data = await fetchWithAuth('/cab/request', {
+      method: 'POST',
+      body: JSON.stringify({
+        pickupLocation: { address: source },
+        dropLocation: { address: destination },
+        fare
+      })
+    });
+
+    const availableDriversCount = data.availableDriversCount ?? data.nearbyDriversCount ?? 0;
+    if (availableDriversCount === 0) {
+      showToast('No cabs are online right now. Your request is saved and waiting for a driver.', 'warning');
+    } else {
+      showToast(`Cab request sent to ${availableDriversCount} available driver(s).`, 'success');
+    }
+
+    currentRideId = data.ride._id;
+    socket.emit('join-ride-room', currentRideId);
+    
+    document.getElementById('active-ride-banner').classList.remove('hidden');
+    updateRideDetails(data.ride);
+    updateRideUI('searching');
+    document.getElementById('book-cab-form').reset();
+
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+}
+
+function calculateEstimatedFare(source, destination) {
+  const rawFare = 120 + (source.length * 6) + (destination.length * 8);
+  return Math.max(150, Math.min(rawFare, 650));
+}
+
+function updateRideDetails(ride) {
+  const details = [
+    `From ${ride.pickupLocation.address} to ${ride.dropLocation.address}`,
+    `Fare: ₹${ride.fare}`,
+    `Payment: ${ride.paymentMode || 'Cash'}`
+  ];
+
+  if (ride.driver) {
+    details.push(`Driver: ${ride.driver.name}`);
+    details.push(`Phone: ${ride.driver.phoneNumber || 'Not available'}`);
+    details.push(`Vehicle: ${ride.driver.carNumber || 'Not assigned'}`);
+  }
+
+  document.getElementById('ride-details-text').textContent = details.join(' | ');
+}
+
+function updateRideUI(status) {
+  const statusText = document.getElementById('ride-status-text');
+  switch(status) {
+    case 'searching': statusText.textContent = 'Searching for driver...'; break;
+    case 'accepted': statusText.textContent = 'Driver Accepted. Waiting for pickup.'; break;
+    case 'started': statusText.textContent = 'Ride in progress.'; break;
+    default: statusText.textContent = 'Searching for driver...';
+  }
+}
+
+function resetRideUI() {
+  currentRideId = null;
+  document.getElementById('active-ride-banner').classList.add('hidden');
+  document.getElementById('otp-display').classList.add('hidden');
+  document.getElementById('open-chat-btn').classList.add('hidden');
+  document.getElementById('ride-details-text').textContent = 'Your current cab request will appear here.';
+  document.getElementById('chat-messages').innerHTML = '<div class="text-center text-muted" style="font-size: 0.8rem;">Chat is ephemeral and disappears after the ride.</div>';
+}
+
+function handleChatSubmit(e) {
+  e.preventDefault();
+  const input = document.getElementById('chat-input');
+  const message = input.value.trim();
+  if (!message || !currentRideId) return;
+
+  appendMessage('You', message, 'self');
+  socket.emit('send-message', {
+    rideId: currentRideId,
+    message,
+    senderId: user.id,
+    senderName: user.name
+  });
+  input.value = '';
+}
+
+function appendMessage(sender, text, type) {
+  const container = document.getElementById('chat-messages');
+  const msgDiv = document.createElement('div');
+  msgDiv.className = `chat-message ${type}`;
+  msgDiv.innerHTML = `<div style="font-size: 0.75rem; opacity: 0.8; margin-bottom: 2px;">${sender}</div><div>${text}</div>`;
+  container.appendChild(msgDiv);
+  container.scrollTop = container.scrollHeight;
+}
+
+async function loadAvailableCabs() {
+  try {
+    const drivers = await fetchWithAuth('/cab/drivers');
+    if (drivers.length === 0) {
+      document.getElementById('cab-results').innerHTML = '<p class="text-muted">No cabs are online right now.</p>';
+      return;
+    }
+
+    const cabContainer = document.getElementById('cab-results');
+    cabContainer.innerHTML = '';
+
+    drivers.forEach(driver => {
+      const div = document.createElement('div');
+      div.className = 'list-card';
+      div.innerHTML = `
+        <div class="list-card-header">
+          <div>
+            <h4>${driver.carNumber || 'Car Number Not Assigned'}</h4>
+            <p>Driver: ${driver.name}</p>
+          </div>
+          <span class="badge badge-success">Online</span>
+        </div>
+        <div class="route-meta">
+          <span>Phone: ${driver.phoneNumber || 'Not available'}</span>
+          <span>Available for booking</span>
+          <span>Payment: Cash</span>
+        </div>
+      `;
+      cabContainer.appendChild(div);
+    });
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+}
+
+async function loadAvailableBuses() {
+  try {
+    const routes = await fetchWithAuth('/bus/search');
+    const container = document.getElementById('bus-results');
+    container.innerHTML = '';
+
+    if (routes.length === 0) {
+      container.innerHTML = '<p class="text-muted">No buses are available right now.</p>';
+      return;
+    }
+
+    routes.forEach(route => {
+      const busNumber = route.busNumber || 'Bus Route';
+      const div = document.createElement('div');
+      div.className = 'list-card';
+      div.innerHTML = `
+        <div class="list-card-header">
+          <div>
+            <h4>${busNumber} | ${route.source} to ${route.destination}</h4>
+            <p>Driver: ${(route.busDriver && route.busDriver.name) || 'Assigned Driver'}</p>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="bookBus('${route._id}')">Book Seat</button>
+        </div>
+        <div class="route-meta">
+          <span>Departure: ${route.departureTime} on ${new Date(route.travelDate).toLocaleDateString()}</span>
+          <span>Fare: ₹${route.fare}</span>
+          <span>${route.availableSeats} seats left</span>
+        </div>
+      `;
+      container.appendChild(div);
+    });
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+}
+
+async function bookBus(routeId) {
+  const seatNumber = prompt('Enter a seat number (1-40):');
+  if (!seatNumber) return;
+  const parsedSeatNumber = parseInt(seatNumber, 10);
+
+  if (Number.isNaN(parsedSeatNumber) || parsedSeatNumber < 1 || parsedSeatNumber > 40) {
+    showToast('Enter a valid seat number between 1 and 40.', 'error');
+    return;
+  }
+
+  try {
+    await fetchWithAuth('/bus/book', {
+      method: 'POST',
+      body: JSON.stringify({ routeId, seatNumber: parsedSeatNumber })
+    });
+    showToast('Seat booked successfully! Please pay cash to the driver.', 'success');
+    loadAvailableBuses();
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+}
+
+async function loadRideHistory() {
+  try {
+    const rides = await fetchWithAuth('/cab/history');
+    const container = document.getElementById('ride-history-list');
+    container.innerHTML = '';
+
+    if (rides.length === 0) {
+      container.innerHTML = '<p class="text-muted">No rides yet.</p>';
+      return;
+    }
+
+    rides.forEach(ride => {
+      const div = document.createElement('div');
+      div.className = 'list-card';
+      const statusClass = ride.status === 'completed' ? 'badge-success' : 'badge-warning';
+      div.innerHTML = `
+        <div class="list-card-header">
+          <div>
+            <h4>${ride.pickupLocation.address} to ${ride.dropLocation.address}</h4>
+            <p>Driver: ${ride.driver ? ride.driver.name : 'Not assigned'}</p>
+          </div>
+          <span class="badge ${statusClass}">${ride.status.toUpperCase()}</span>
+        </div>
+        <div class="route-meta">
+          <span>Fare: ₹${ride.fare}</span>
+          <span>Payment: Cash</span>
+          <span>${new Date(ride.createdAt).toLocaleString()}</span>
+        </div>
+      `;
+      container.appendChild(div);
+    });
+  } catch (error) {
+    console.error(error);
+  }
+}

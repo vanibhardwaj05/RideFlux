@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Passenger Dashboard - RideFlux</title>
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container">
+      <div class="logo">
+        <span class="logo-mark">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/>
+            <circle cx="7" cy="17" r="2"/>
+            <path d="M9 17h6"/>
+            <circle cx="17" cy="17" r="2"/>
+          </svg>
+        </span>
+        RideFlux Passenger
+      </div>
+      <div class="nav-links">
+        <span class="user-name-display font-bold"></span>
+        <button class="btn btn-outline logout-btn">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="page-shell">
+    <section class="container">
+      <div class="card dashboard-hero">
+        <div>
+          <p class="eyebrow">Passenger Dashboard</p>
+          <h1 class="section-title">Book cabs, browse buses, and track live trip updates.</h1>
+          <p class="lead mt-4">Use the booking form below to request a cab, review available buses, and monitor your ride status.</p>
+        </div>
+
+        <div class="dashboard-art-group">
+          <img src="./assets/car-hero.svg" alt="Stylized cab illustration" class="dashboard-art">
+          <img src="./assets/bus-hero.svg" alt="Stylized bus illustration" class="dashboard-art accent">
+        </div>
+      </div>
+    </section>
+
+    <section class="container mt-6">
+      <div id="active-ride-banner" class="ride-status-banner hidden">
+        <div>
+          <h3>Active Ride: <span id="ride-status-text">Searching for driver...</span></h3>
+          <p id="ride-details-text" style="opacity: 0.9; font-size: 0.95rem;">Your current cab request will appear here.</p>
+        </div>
+        <div class="flex gap-2">
+          <div id="otp-display" class="badge badge-warning hidden" style="font-size: 0.95rem; padding: 0.5rem 1rem;">OTP: <span></span></div>
+          <button id="open-chat-btn" class="btn btn-secondary hidden">Chat with Driver</button>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <section class="card">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Cab</p>
+              <h2>Request a Cab</h2>
+            </div>
+            <button type="button" id="refresh-cabs-btn" class="btn btn-outline">Refresh</button>
+          </div>
+
+          <form id="book-cab-form" class="mb-4">
+            <div class="form-group">
+              <label class="form-label">Source</label>
+              <input type="text" id="cab-source" class="form-control" placeholder="Cyber Hub, Gurugram" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Destination</label>
+              <input type="text" id="cab-destination" class="form-control" placeholder="Connaught Place, Delhi" required>
+            </div>
+            <div class="split-inline">
+              <button type="submit" id="book-cab-btn" class="btn btn-primary">Request Available Cab</button>
+            </div>
+          </form>
+
+          <h3 class="mb-4">Available Cabs</h3>
+          <div id="cab-results" class="list-shell">
+            <p class="text-muted">Loading cabs...</p>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Bus</p>
+              <h2>Available Buses</h2>
+            </div>
+            <button type="button" id="refresh-buses-btn" class="btn btn-outline">Refresh</button>
+          </div>
+
+          <div id="bus-results" class="list-shell">
+            <p class="text-muted">Loading buses...</p>
+          </div>
+        </section>
+      </div>
+
+      <section class="card mt-6">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">History</p>
+            <h2>Your Ride History</h2>
+          </div>
+        </div>
+
+        <div id="ride-history-list" class="list-shell">
+          <p class="text-muted">Loading history...</p>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <div id="chat-modal" class="modal-overlay">
+    <div class="modal-content" style="padding: 1rem;">
+      <div class="flex justify-between items-center mb-4">
+        <h3 style="margin: 0;">Driver Chat</h3>
+        <button class="btn btn-outline modal-close" style="padding: 0.3rem 0.75rem;">Close</button>
+      </div>
+      <div class="chat-window">
+        <div id="chat-messages" class="chat-messages">
+          <div class="text-center text-muted" style="font-size: 0.82rem;">Chat is ephemeral and disappears after the ride.</div>
+        </div>
+        <form id="chat-form" class="chat-input">
+          <input type="text" id="chat-input" placeholder="Type a message..." required autocomplete="off">
+          <button type="submit" class="btn btn-primary">Send</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script src="./js/app.js"></script>
+  <script src="./js/passenger.js"></script>
+</body>
+</html>

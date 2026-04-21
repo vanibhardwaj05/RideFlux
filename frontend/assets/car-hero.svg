@@ -1,0 +1,51 @@
+<svg width="640" height="420" viewBox="0 0 640 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="carBody" x1="112" y1="116" x2="470" y2="294" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF8A1D"/>
+      <stop offset="0.55" stop-color="#FFB347"/>
+      <stop offset="1" stop-color="#F7F3EA"/>
+    </linearGradient>
+    <linearGradient id="carGlass" x1="177" y1="118" x2="342" y2="202" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7CE5FF"/>
+      <stop offset="1" stop-color="#1F2A35"/>
+    </linearGradient>
+    <linearGradient id="carRoad" x1="96" y1="334" x2="516" y2="334" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0D0F14"/>
+      <stop offset="1" stop-color="#20252F"/>
+    </linearGradient>
+    <radialGradient id="carGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(314 255) rotate(90) scale(150 260)">
+      <stop stop-color="#FF8A1D" stop-opacity="0.38"/>
+      <stop offset="1" stop-color="#FF8A1D" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blurGlow" x="40" y="92" width="550" height="246" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="24"/>
+    </filter>
+  </defs>
+
+  <ellipse cx="316" cy="246" rx="196" ry="84" fill="url(#carGlow)" filter="url(#blurGlow)"/>
+  <path d="M112 334C180 316 270 310 522 322" stroke="url(#carRoad)" stroke-width="22" stroke-linecap="round"/>
+  <path d="M63 211L122 183" stroke="#56D4FF" stroke-opacity="0.45" stroke-width="8" stroke-linecap="round"/>
+  <path d="M84 248L154 221" stroke="#56D4FF" stroke-opacity="0.3" stroke-width="5" stroke-linecap="round"/>
+  <path d="M467 110L556 84" stroke="#FFD166" stroke-opacity="0.34" stroke-width="7" stroke-linecap="round"/>
+  <path d="M492 141L571 123" stroke="#FFD166" stroke-opacity="0.24" stroke-width="4" stroke-linecap="round"/>
+
+  <g>
+    <path d="M137 262C145 223 176 187 223 170L314 137C343 126 376 127 404 142L455 168C476 179 493 197 504 220L524 262H493C484 233 457 212 425 212C392 212 364 234 356 262H249C241 233 214 212 181 212C148 212 121 234 112 262H137Z" fill="url(#carBody)"/>
+    <path d="M240 171L318 144C341 136 367 137 389 148L443 175C451 179 456 186 458 194H215C220 184 228 176 240 171Z" fill="#0D1016"/>
+    <path d="M237 177L306 150C330 141 355 142 377 151L420 169C427 172 432 178 434 184H225C228 181 231 178 237 177Z" fill="url(#carGlass)"/>
+    <path d="M312 149L339 148C352 148 365 151 377 156L408 170L365 170L312 149Z" fill="#13171F"/>
+    <path d="M151 259H107C97 259 89 251 89 242V229C89 220 95 212 104 208L127 198L151 259Z" fill="#0C0F15"/>
+    <path d="M503 223L534 224C546 224 555 234 554 246C553 256 545 264 535 264H524L503 223Z" fill="#0C0F15"/>
+    <path d="M489 200H520C526 200 531 205 531 211V216L502 219L489 200Z" fill="#FFDBA8"/>
+    <path d="M117 244H157" stroke="#F9F7EF" stroke-opacity="0.45" stroke-width="4" stroke-linecap="round"/>
+    <path d="M369 261H420" stroke="#11131A" stroke-width="10" stroke-linecap="round"/>
+    <path d="M189 262H230" stroke="#11131A" stroke-width="10" stroke-linecap="round"/>
+    <circle cx="183" cy="266" r="52" fill="#0A0C11"/>
+    <circle cx="183" cy="266" r="33" fill="#1D232D"/>
+    <circle cx="183" cy="266" r="15" fill="#A8B1BD"/>
+    <circle cx="425" cy="266" r="52" fill="#0A0C11"/>
+    <circle cx="425" cy="266" r="33" fill="#1D232D"/>
+    <circle cx="425" cy="266" r="15" fill="#A8B1BD"/>
+    <path d="M95 223L114 214L124 232L103 238C98 239 94 235 95 230V223Z" fill="#56D4FF"/>
+  </g>
+</svg>

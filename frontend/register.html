@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - RideFlux</title>
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+  <main class="auth-shell">
+    <div class="container auth-layout">
+      <section class="card auth-promo">
+        <div>
+          <a href="./index.html" class="logo">
+            <span class="logo-mark">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/>
+                <circle cx="7" cy="17" r="2"/>
+                <path d="M9 17h6"/>
+                <circle cx="17" cy="17" r="2"/>
+              </svg>
+            </span>
+            RideFlux
+          </a>
+          <p class="eyebrow mt-6">Register</p>
+          <h1 class="section-title">Create your RideFlux account.</h1>
+          <p class="lead mt-4">Set up access for passenger, cab driver, or bus driver workflows.</p>
+        </div>
+
+        <div class="auth-visual-stack">
+          <div class="card" style="padding: 1rem;">
+            <span class="surface-tag">Cab</span>
+            <img src="./assets/car-hero.svg" alt="Cab artwork" class="vehicle-image">
+          </div>
+          <div class="card" style="padding: 1rem;">
+            <span class="surface-tag">Bus</span>
+            <img src="./assets/bus-hero.svg" alt="Bus artwork" class="vehicle-image">
+          </div>
+        </div>
+      </section>
+
+      <section class="card auth-panel">
+        <div>
+          <p class="eyebrow">Register</p>
+          <h2>Create your account</h2>
+          <p class="form-note mt-4">Set up your RideFlux identity and we&apos;ll send you to the right dashboard after signup.</p>
+        </div>
+
+        <form id="register-form">
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input type="text" id="name" class="form-control" placeholder="Vani bhardwaj" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" id="email" class="form-control" placeholder="name@example.com" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" id="password" class="form-control" placeholder="Create a secure password" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">I am a...</label>
+            <select id="role" class="form-control" required>
+              <option value="passenger">Passenger</option>
+              <option value="cab_driver">Cab Driver</option>
+              <option value="bus_driver">Bus Driver</option>
+            </select>
+          </div>
+          <div id="phone-group" class="form-group hidden">
+            <label class="form-label">Phone Number</label>
+            <input type="tel" id="phone-number" class="form-control" placeholder="9876543210">
+          </div>
+          <div id="car-number-group" class="form-group hidden">
+            <label class="form-label">Car Number</label>
+            <input type="text" id="car-number" class="form-control" placeholder="DL 1 AB 1234">
+          </div>
+          <div id="bus-number-group" class="form-group hidden">
+            <label class="form-label">Bus Number</label>
+            <input type="text" id="bus-number" class="form-control" placeholder="BUS-3001">
+          </div>
+          <button type="submit" class="btn btn-primary w-full mt-4">Sign Up</button>
+        </form>
+
+        <div class="auth-links">
+          Already have an account?
+          <a href="./login.html"><strong>Login here</strong></a>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="./js/app.js"></script>
+  <script>
+    const roleEl = document.getElementById('role');
+    const phoneGroup = document.getElementById('phone-group');
+    const carNumberGroup = document.getElementById('car-number-group');
+    const busNumberGroup = document.getElementById('bus-number-group');
+    const phoneInput = document.getElementById('phone-number');
+    const carNumberInput = document.getElementById('car-number');
+    const busNumberInput = document.getElementById('bus-number');
+
+    function updateDriverFields() {
+      const role = roleEl.value;
+      const isDriver = role === 'cab_driver' || role === 'bus_driver';
+      const isCabDriver = role === 'cab_driver';
+      const isBusDriver = role === 'bus_driver';
+
+      phoneGroup.classList.toggle('hidden', !isDriver);
+      carNumberGroup.classList.toggle('hidden', !isCabDriver);
+      busNumberGroup.classList.toggle('hidden', !isBusDriver);
+
+      phoneInput.required = isDriver;
+      carNumberInput.required = isCabDriver;
+      busNumberInput.required = isBusDriver;
+
+      if (!isCabDriver) carNumberInput.value = '';
+      if (!isBusDriver) busNumberInput.value = '';
+      if (!isDriver) phoneInput.value = '';
+    }
+
+    roleEl.addEventListener('change', updateDriverFields);
+    updateDriverFields();
+
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const role = roleEl.value;
+      const phoneNumber = phoneInput.value;
+      const carNumber = carNumberInput.value;
+      const busNumber = busNumberInput.value;
+
+      try {
+        const data = await fetchWithAuth('/auth/register', {
+          method: 'POST',
+          body: JSON.stringify({ name, email, password, role, phoneNumber, carNumber, busNumber })
+        });
+
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+
+        showToast('Registration successful!', 'success');
+        setTimeout(() => redirectBasedOnRole(data.user.role), 1000);
+      } catch (error) {
+        showToast(error.message, 'error');
+      }
+    });
+  </script>
+</body>
+</html>

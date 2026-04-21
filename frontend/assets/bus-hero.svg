@@ -1,0 +1,51 @@
+<svg width="640" height="420" viewBox="0 0 640 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="busBody" x1="122" y1="124" x2="515" y2="302" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#56D4FF"/>
+      <stop offset="0.45" stop-color="#18A8DF"/>
+      <stop offset="1" stop-color="#F5F0E6"/>
+    </linearGradient>
+    <linearGradient id="busGlass" x1="173" y1="122" x2="455" y2="207" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#B7F1FF"/>
+      <stop offset="1" stop-color="#253141"/>
+    </linearGradient>
+    <linearGradient id="busAccent" x1="130" y1="241" x2="501" y2="244" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF8A1D"/>
+      <stop offset="1" stop-color="#FFD166"/>
+    </linearGradient>
+    <radialGradient id="busGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(322 242) rotate(90) scale(150 250)">
+      <stop stop-color="#56D4FF" stop-opacity="0.38"/>
+      <stop offset="1" stop-color="#56D4FF" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="busBlur" x="52" y="90" width="540" height="252" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="24"/>
+    </filter>
+  </defs>
+
+  <ellipse cx="322" cy="246" rx="194" ry="84" fill="url(#busGlow)" filter="url(#busBlur)"/>
+  <path d="M120 336C186 317 277 311 522 322" stroke="#11161E" stroke-width="24" stroke-linecap="round"/>
+  <path d="M91 173L160 153" stroke="#56D4FF" stroke-opacity="0.26" stroke-width="7" stroke-linecap="round"/>
+  <path d="M478 119L563 90" stroke="#FFB347" stroke-opacity="0.26" stroke-width="7" stroke-linecap="round"/>
+
+  <g>
+    <path d="M138 144C138 131 148 120 161 120H469C494 120 515 141 515 166V258C515 281 496 300 473 300H171C152 300 138 286 138 267V144Z" fill="url(#busBody)"/>
+    <path d="M174 145H445C466 145 483 162 483 183V221H174V145Z" fill="url(#busGlass)"/>
+    <path d="M174 225H483V244C483 249 479 253 474 253H183C178 253 174 249 174 244V225Z" fill="#11161F"/>
+    <path d="M145 252H509" stroke="url(#busAccent)" stroke-width="12" stroke-linecap="round"/>
+    <path d="M186 163H225" stroke="#11161F" stroke-opacity="0.8" stroke-width="4" stroke-linecap="round"/>
+    <path d="M245 163H284" stroke="#11161F" stroke-opacity="0.8" stroke-width="4" stroke-linecap="round"/>
+    <path d="M304 163H343" stroke="#11161F" stroke-opacity="0.8" stroke-width="4" stroke-linecap="round"/>
+    <path d="M363 163H402" stroke="#11161F" stroke-opacity="0.8" stroke-width="4" stroke-linecap="round"/>
+    <path d="M422 163H461" stroke="#11161F" stroke-opacity="0.8" stroke-width="4" stroke-linecap="round"/>
+    <path d="M145 185H171" stroke="#0D1016" stroke-width="8" stroke-linecap="round"/>
+    <path d="M483 184H509" stroke="#F5F0E6" stroke-width="8" stroke-linecap="round"/>
+    <path d="M192 237H285" stroke="#56D4FF" stroke-opacity="0.6" stroke-width="5" stroke-linecap="round"/>
+    <path d="M336 237H452" stroke="#56D4FF" stroke-opacity="0.6" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="219" cy="300" r="40" fill="#0B0D13"/>
+    <circle cx="219" cy="300" r="24" fill="#1C2330"/>
+    <circle cx="219" cy="300" r="10" fill="#AEB7C3"/>
+    <circle cx="430" cy="300" r="40" fill="#0B0D13"/>
+    <circle cx="430" cy="300" r="24" fill="#1C2330"/>
+    <circle cx="430" cy="300" r="10" fill="#AEB7C3"/>
+  </g>
+</svg>
