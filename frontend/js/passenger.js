@@ -8,18 +8,55 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   initSocket();
   loadAvailableCabs();
-  loadAvailableBuses();
   loadRideHistory();
 
+  // Tab switching logic
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const tabContents = document.querySelectorAll('.tab-content');
+
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetTab = btn.dataset.tab;
+
+      // Update buttons
+      tabBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      // Update content
+      tabContents.forEach(content => {
+        if (content.id === `${targetTab}-section`) {
+          content.classList.remove('hidden');
+        } else {
+          content.classList.add('hidden');
+        }
+      });
+
+      // Load data for the selected tab if needed
+      if (targetTab === 'bus') {
+        loadAvailableBuses();
+      } else {
+        loadAvailableCabs();
+      }
+    });
+  });
+
   document.getElementById('book-cab-form').addEventListener('submit', handleBookCab);
+  document.getElementById('search-bus-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    loadAvailableBuses();
+  });
   document.getElementById('refresh-cabs-btn').addEventListener('click', loadAvailableCabs);
   document.getElementById('refresh-buses-btn').addEventListener('click', loadAvailableBuses);
   document.getElementById('open-chat-btn').addEventListener('click', () => openModal('chat-modal'));
   document.getElementById('chat-form').addEventListener('submit', handleChatSubmit);
 
   setInterval(() => {
-    loadAvailableCabs();
-    loadAvailableBuses();
+    const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
+    if (activeTab === 'cab') {
+      loadAvailableCabs();
+    } else {
+      loadAvailableBuses();
+    }
   }, 15000);
 });
 
@@ -200,7 +237,16 @@ async function loadAvailableCabs() {
 
 async function loadAvailableBuses() {
   try {
-    const routes = await fetchWithAuth('/bus/search');
+    const source = document.getElementById('bus-source').value.trim();
+    const destination = document.getElementById('bus-destination').value.trim();
+    
+    let url = '/bus/search';
+    const params = new URLSearchParams();
+    if (source) params.append('source', source);
+    if (destination) params.append('destination', destination);
+    if (params.toString()) url += `?${params.toString()}`;
+
+    const routes = await fetchWithAuth(url);
     const container = document.getElementById('bus-results');
     container.innerHTML = '';
 
