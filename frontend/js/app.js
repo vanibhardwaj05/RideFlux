@@ -4,6 +4,10 @@ const API_URL = `${API_ORIGIN}/api`;
 const SOCKET_URL = API_ORIGIN;
 
 // Utility for fetching data with auth token
+/**
+ * Global fetch wrapper that automatically attaches JWT token from localStorage
+ * and handles common error scenarios like 401 Unauthorized.
+ */
 async function fetchWithAuth(url, options = {}) {
   const token = localStorage.getItem('token');
   const headers = {
