@@ -90,6 +90,14 @@ Open `frontend/index.html` directly in your browser, or use VS Code **Live Serve
 - JWT-based register & login
 - Role-based access control (RBAC)
 - Auto-redirect to correct dashboard after login
+- Secure JWT storage in localStorage for session persistence
+- Automatic token expiration handling and logout logic
+
+#### Registration Flow
+Users select their role (Passenger, Cab Driver, Bus Driver) during registration. For drivers, additional fields like phone number and vehicle details are mandatory to ensure service quality.
+
+#### Login Flow
+Upon successful login, the server returns a JWT which is stored on the client. All subsequent requests to protected `/api` routes include this token in the `Authorization` header.
 
 ### 🚖 Cab Booking
 - Simple source and destination form with a live list of available cabs
