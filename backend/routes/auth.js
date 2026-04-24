@@ -13,8 +13,8 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'User already exists' });
     }
 
-    if ((role === 'cab_driver' || role === 'bus_driver') && !phoneNumber?.trim()) {
-      return res.status(400).json({ error: 'Phone number is required for drivers' });
+    if (!phoneNumber?.trim()) {
+      return res.status(400).json({ error: 'Phone number is required' });
     }
 
     if (role === 'cab_driver' && !carNumber?.trim()) {

@@ -102,21 +102,21 @@
 
     function updateDriverFields() {
       const role = roleEl.value;
-      const isDriver = role === 'cab_driver' || role === 'bus_driver';
       const isCabDriver = role === 'cab_driver';
       const isBusDriver = role === 'bus_driver';
 
-      phoneGroup.classList.toggle('hidden', !isDriver);
+      // Phone number is now required for everyone
+      phoneGroup.classList.remove('hidden');
+      phoneInput.required = true;
+
       carNumberGroup.classList.toggle('hidden', !isCabDriver);
       busNumberGroup.classList.toggle('hidden', !isBusDriver);
 
-      phoneInput.required = isDriver;
       carNumberInput.required = isCabDriver;
       busNumberInput.required = isBusDriver;
 
       if (!isCabDriver) carNumberInput.value = '';
       if (!isBusDriver) busNumberInput.value = '';
-      if (!isDriver) phoneInput.value = '';
     }
 
     roleEl.addEventListener('change', updateDriverFields);
