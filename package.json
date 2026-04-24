@@ -1,6 +1,9 @@
 {
   "name": "rideflux-root",
   "version": "1.0.0",
+  "description": "A high-performance Cab and Bus Booking System with real-time tracking.",
+  "author": "RideFlux Team",
+  "license": "MIT",
   "scripts": {
     "backend-install": "cd backend && npm install",
     "backend": "cd backend && npm start",
