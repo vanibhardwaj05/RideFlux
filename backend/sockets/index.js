@@ -10,6 +10,7 @@ module.exports = (io) => {
 
     // Handle chat messages (ephemeral)
     socket.on('send-message', ({ rideId, message, senderId, senderName }) => {
+      console.log(`Message from ${senderName} in ride_${rideId}: ${message.substring(0, 20)}...`);
       // Broadcast to everyone in the room except the sender
       socket.to(`ride_${rideId}`).emit('receive-message', {
         message,
