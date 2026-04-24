@@ -60,6 +60,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   }, 15000);
 });
 
+// Helper to format currency consistently
+function formatCurrency(amount) {
+  return `₹${amount}`;
+}
+
 function initSocket() {
   socket = io(SOCKET_URL);
 
