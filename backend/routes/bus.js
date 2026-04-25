@@ -8,9 +8,8 @@ router.get('/search', async (req, res) => {
   try {
     const { source, destination, date } = req.query;
     
-    const query = {};
-    if (source) query.source = source;
-    if (destination) query.destination = destination;
+    const query = { availableSeats: { $gt: 0 } };
+    
     if (date) {
       const searchDate = new Date(date);
       const nextDate = new Date(searchDate);
@@ -22,9 +21,27 @@ router.get('/search', async (req, res) => {
       };
     }
 
-    const routes = await BusRoute.find(query)
+    // Since we need to check if source comes before destination in the full path [source, ...stops, destination],
+    // we fetch matching date routes and filter in JS if source/destination are provided.
+    // If it's a huge DB, we'd use complex MongoDB aggregation, but this is fine for this scale.
+    let routes = await BusRoute.find(query)
       .populate('busDriver', 'name')
       .sort({ travelDate: 1, departureTime: 1 });
+
+    if (source || destination) {
+      routes = routes.filter(route => {
+        const fullPath = [route.source, ...(route.stops || []), route.destination].map(s => s.toLowerCase());
+        
+        const srcIdx = source ? fullPath.indexOf(source.toLowerCase()) : 0;
+        const destIdx = destination ? fullPath.indexOf(destination.toLowerCase()) : fullPath.length - 1;
+
+        if (srcIdx === -1 || destIdx === -1) return false;
+        if (source && destination && srcIdx >= destIdx) return false;
+        
+        return true;
+      });
+    }
+
     res.json(routes);
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
@@ -90,6 +107,49 @@ router.get('/manifest/:routeId', auth, authorize('bus_driver'), async (req, res)
       .sort({ seatNumber: 1 });
 
     res.json({ route, bookings });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/create-route', auth, authorize('bus_driver'), async (req, res) => {
+  try {
+    const { source, destination, stops, travelDate, departureTime, fare } = req.body;
+
+    if (!source || !destination || !travelDate || !departureTime || !fare) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const route = new BusRoute({
+      source,
+      destination,
+      stops: stops || [],
+      travelDate: new Date(travelDate),
+      departureTime,
+      fare,
+      busDriver: req.user.userId,
+      totalSeats: 10,
+      availableSeats: 10
+    });
+
+    await route.save();
+    res.status(201).json(route);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.delete('/route/:routeId', auth, authorize('bus_driver'), async (req, res) => {
+  try {
+    const route = await BusRoute.findOne({ _id: req.params.routeId, busDriver: req.user.userId });
+    if (!route) {
+      return res.status(404).json({ error: 'Route not found or unauthorized' });
+    }
+    
+    await BusRoute.deleteOne({ _id: req.params.routeId });
+    await BusBooking.deleteMany({ route: req.params.routeId });
+    
+    res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
   }
