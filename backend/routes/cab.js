@@ -155,6 +155,27 @@ router.post('/complete/:rideId', auth, authorize('cab_driver'), async (req, res)
   }
 });
 
+router.post('/cancel/:rideId', auth, authorize('cab_driver'), async (req, res) => {
+  try {
+    const { rideId } = req.params;
+
+    const ride = await Ride.findById(rideId);
+    if (!ride || (ride.status !== 'accepted' && ride.status !== 'started')) {
+      return res.status(400).json({ error: 'Invalid ride status' });
+    }
+
+    ride.status = 'cancelled';
+    await ride.save();
+
+    // Make the driver available again
+    await User.findByIdAndUpdate(req.user.userId, { isAvailable: true });
+
+    res.json(ride);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 router.get('/history', auth, async (req, res) => {
   try {
     const query = req.user.role === 'passenger' 
