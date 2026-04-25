@@ -33,6 +33,10 @@ module.exports = (io) => {
       io.to(`ride_${rideId}`).emit('ride-status-update', { status: 'completed' });
     });
 
+    socket.on('ride-cancelled', ({ rideId }) => {
+      io.to(`ride_${rideId}`).emit('ride-status-update', { status: 'cancelled' });
+    });
+
     socket.on('disconnect', () => {
       console.log('User disconnected:', socket.id);
     });
