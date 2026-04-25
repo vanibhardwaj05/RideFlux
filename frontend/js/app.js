@@ -9,7 +9,7 @@ const SOCKET_URL = API_ORIGIN;
  * and handles common error scenarios like 401 Unauthorized.
  */
 async function fetchWithAuth(url, options = {}) {
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   const headers = {
     'Content-Type': 'application/json',
     ...options.headers
@@ -72,14 +72,14 @@ function showToast(message, type = 'info') {
 
 // Auth Utilities
 function logout() {
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
+  sessionStorage.removeItem('token');
+  sessionStorage.removeItem('user');
   window.location.href = './login.html';
 }
 
 function checkAuth(allowedRoles = []) {
-  const token = localStorage.getItem('token');
-  const userStr = localStorage.getItem('user');
+  const token = sessionStorage.getItem('token');
+  const userStr = sessionStorage.getItem('user');
 
   if (!token || !userStr) {
     window.location.href = './login.html';
