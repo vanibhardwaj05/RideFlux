@@ -5,6 +5,48 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!user) return;
 
   loadMyRoutes();
+
+  const addStoppageBtn = document.getElementById('add-stoppage-btn');
+  const stoppagesContainer = document.getElementById('stoppages-container');
+  const createRouteForm = document.getElementById('create-route-form');
+
+  if (addStoppageBtn) {
+    addStoppageBtn.addEventListener('click', () => {
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'form-control stoppage-input';
+      input.placeholder = 'Stoppage (e.g. Lucknow)';
+      stoppagesContainer.appendChild(input);
+    });
+  }
+
+  if (createRouteForm) {
+    createRouteForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const source = document.getElementById('route-source').value.trim();
+      const destination = document.getElementById('route-destination').value.trim();
+      const travelDate = document.getElementById('route-date').value;
+      const departureTime = document.getElementById('route-time').value;
+      const fare = document.getElementById('route-fare').value;
+      
+      const stoppageInputs = document.querySelectorAll('.stoppage-input');
+      const stops = Array.from(stoppageInputs).map(inp => inp.value.trim()).filter(val => val !== '');
+
+      try {
+        await fetchWithAuth('/bus/create-route', {
+          method: 'POST',
+          body: JSON.stringify({ source, destination, stops, travelDate, departureTime, fare })
+        });
+        showToast('Route created successfully! Capacity is set to 10 seats.', 'success');
+        createRouteForm.reset();
+        stoppagesContainer.innerHTML = '';
+        loadMyRoutes();
+      } catch (error) {
+        showToast(error.message, 'error');
+      }
+    });
+  }
 });
 
 async function loadMyRoutes() {
@@ -30,7 +72,10 @@ async function loadMyRoutes() {
             <h4>${busNumber} | ${route.source} to ${route.destination}</h4>
             <p>Bus Number: ${busNumber}</p>
           </div>
-          <button class="btn btn-outline btn-sm">View Manifest</button>
+          <div class="flex gap-2">
+            <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); loadManifest('${route._id}')">View Manifest</button>
+            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); deleteRoute('${route._id}')">Delete</button>
+          </div>
         </div>
         <div class="route-meta">
           <span>Date: ${new Date(route.travelDate).toLocaleDateString()}</span>
@@ -42,6 +87,20 @@ async function loadMyRoutes() {
       div.addEventListener('click', () => loadManifest(route._id));
       container.appendChild(div);
     });
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+}
+
+async function deleteRoute(routeId) {
+  if (!confirm('Are you sure you want to delete this route? All bookings will be lost.')) return;
+
+  try {
+    await fetchWithAuth(`/bus/route/${routeId}`, { method: 'DELETE' });
+    showToast('Route deleted successfully.', 'success');
+    loadMyRoutes();
+    document.getElementById('manifest-placeholder').classList.remove('hidden');
+    document.getElementById('manifest-content').classList.add('hidden');
   } catch (error) {
     showToast(error.message, 'error');
   }
