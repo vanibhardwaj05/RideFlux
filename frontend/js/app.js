@@ -1,5 +1,5 @@
 // Base URL for API — points to the backend server
-const API_ORIGIN = window.RIDEFLUX_API_ORIGIN || 'http://127.0.0.1:3000';
+const API_ORIGIN = window.RIDEFLUX_API_ORIGIN || 'https://rideflux-h1h9.onrender.com';
 const API_URL = `${API_ORIGIN}/api`;
 const SOCKET_URL = API_ORIGIN;
 
