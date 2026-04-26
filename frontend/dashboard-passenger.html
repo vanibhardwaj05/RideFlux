@@ -48,6 +48,11 @@
         <div>
           <h3>Active Ride: <span id="ride-status-text">Searching for driver...</span></h3>
           <p id="ride-details-text" style="opacity: 0.9; font-size: 0.95rem;">Your current cab request will appear here.</p>
+          <div id="driver-details-container" class="hidden mt-2" style="background: rgba(0,0,0,0.05); padding: 0.5rem; border-radius: 4px;">
+            <p style="margin: 0; font-size: 0.9rem;"><strong>Driver:</strong> <span id="driver-name-display"></span></p>
+            <p style="margin: 0; font-size: 0.9rem;"><strong>Phone:</strong> <span id="driver-phone-display"></span></p>
+            <p style="margin: 0; font-size: 0.9rem;"><strong>Vehicle:</strong> <span id="driver-vehicle-display"></span></p>
+          </div>
         </div>
         <div class="flex gap-2">
           <div id="otp-display" class="badge badge-warning hidden" style="font-size: 0.95rem; padding: 0.5rem 1rem;">OTP: <span></span></div>
