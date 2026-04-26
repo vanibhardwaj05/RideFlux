@@ -30,7 +30,7 @@ router.get('/search', async (req, res) => {
 
     if (source || destination) {
       routes = routes.filter(route => {
-        const fullPath = [route.source, ...(route.stops || []), route.destination].map(s => s.toLowerCase());
+        const fullPath = [route.source, ...route.stops.map(s => s.name), route.destination].map(s => s.toLowerCase());
         
         const srcIdx = source ? fullPath.indexOf(source.toLowerCase()) : 0;
         const destIdx = destination ? fullPath.indexOf(destination.toLowerCase()) : fullPath.length - 1;
