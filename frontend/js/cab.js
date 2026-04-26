@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('chat-form').addEventListener('submit', handleChatSubmit);
   document.getElementById('start-ride-btn').addEventListener('click', startRide);
   document.getElementById('complete-ride-btn').addEventListener('click', completeRide);
+  document.getElementById('cancel-ride-btn').addEventListener('click', cancelRide);
 });
 
 function initSocket() {
@@ -52,7 +53,7 @@ async function updateAvailability(isAvailable) {
 
     updateAvailabilityUI(isAvailable);
     user = { ...user, isAvailable };
-    localStorage.setItem('user', JSON.stringify(user));
+    sessionStorage.setItem('user', JSON.stringify(user));
     
     if (isAvailable) {
       loadAvailableRequests();
@@ -142,7 +143,7 @@ async function acceptRide(rideId) {
     document.getElementById('availability-toggle').checked = false;
     updateAvailabilityUI(false);
     user = { ...user, isAvailable: false };
-    localStorage.setItem('user', JSON.stringify(user));
+    sessionStorage.setItem('user', JSON.stringify(user));
     document.getElementById('requests-list').innerHTML = '<p class="text-muted">You have an active ride.</p>';
     
     showActiveRidePanel(ride, 'accepted');
@@ -158,20 +159,31 @@ function showActiveRidePanel(ride, status) {
   document.getElementById('otp-section').classList.add('hidden');
   document.getElementById('open-chat-btn').classList.add('hidden');
   document.getElementById('complete-ride-btn').classList.add('hidden');
+  document.getElementById('cancel-ride-btn').classList.add('hidden');
 
   document.getElementById('active-ride-details').innerHTML = `
-    <p><strong>Passenger:</strong> ${(ride.passenger && ride.passenger.name) || 'Passenger'}</p>
     <p><strong>Source:</strong> ${ride.pickupLocation.address}</p>
     <p><strong>Destination:</strong> ${ride.dropLocation.address}</p>
     <p><strong>Fare:</strong> ₹${ride.fare} (Cash)</p>
   `;
 
+  const passengerContainer = document.getElementById('passenger-details-container');
+  if (ride.passenger) {
+    document.getElementById('passenger-name-display').textContent = ride.passenger.name || 'Passenger';
+    document.getElementById('passenger-phone-display').textContent = ride.passenger.phoneNumber || 'Not available';
+    passengerContainer.classList.remove('hidden');
+  } else {
+    passengerContainer.classList.add('hidden');
+  }
+
   if (status === 'accepted') {
     document.getElementById('otp-section').classList.remove('hidden');
     document.getElementById('open-chat-btn').classList.remove('hidden');
+    document.getElementById('cancel-ride-btn').classList.remove('hidden');
   } else if (status === 'started') {
     document.getElementById('otp-section').classList.add('hidden');
     document.getElementById('complete-ride-btn').classList.remove('hidden');
+    document.getElementById('cancel-ride-btn').classList.remove('hidden');
   }
 }
 
@@ -205,13 +217,44 @@ async function completeRide() {
     // Reset UI
     currentRideId = null;
     user = { ...user, isAvailable: false };
-    localStorage.setItem('user', JSON.stringify(user));
+    sessionStorage.setItem('user', JSON.stringify(user));
     document.getElementById('active-ride-panel').classList.add('hidden');
     document.getElementById('complete-ride-btn').classList.add('hidden');
+    document.getElementById('cancel-ride-btn').classList.add('hidden');
     document.getElementById('open-chat-btn').classList.add('hidden');
+    document.getElementById('passenger-details-container').classList.add('hidden');
     document.getElementById('chat-messages').innerHTML = '<div class="text-center text-muted" style="font-size: 0.8rem;">Chat is ephemeral and disappears after the ride.</div>';
     
     loadRideHistory();
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+}
+
+async function cancelRide() {
+  if (!confirm('Are you sure you want to cancel this ride?')) return;
+
+  try {
+    await fetchWithAuth(`/cab/cancel/${currentRideId}`, { method: 'POST' });
+    
+    socket.emit('ride-cancelled', { rideId: currentRideId });
+    showToast('Ride cancelled.', 'info');
+    
+    // Reset UI
+    currentRideId = null;
+    user = { ...user, isAvailable: true };
+    sessionStorage.setItem('user', JSON.stringify(user));
+    document.getElementById('availability-toggle').checked = true;
+    updateAvailabilityUI(true);
+    
+    document.getElementById('active-ride-panel').classList.add('hidden');
+    document.getElementById('complete-ride-btn').classList.add('hidden');
+    document.getElementById('cancel-ride-btn').classList.add('hidden');
+    document.getElementById('open-chat-btn').classList.add('hidden');
+    document.getElementById('passenger-details-container').classList.add('hidden');
+    
+    loadRideHistory();
+    loadAvailableRequests();
   } catch (error) {
     showToast(error.message, 'error');
   }
@@ -253,7 +296,31 @@ async function loadRideHistory() {
       return;
     }
 
-    rides.forEach(ride => {
+    const activeRides = rides.filter(r => ['accepted', 'started'].includes(r.status));
+    const historyRides = rides.filter(r => ['completed', 'cancelled'].includes(r.status));
+
+    // Restore active ride if exists
+    if (activeRides.length > 0 && !currentRideId) {
+      const activeRide = activeRides[0];
+      currentRideId = activeRide._id;
+      
+      socket.emit('join-ride-room', currentRideId);
+      
+      document.getElementById('availability-toggle').checked = false;
+      updateAvailabilityUI(false);
+      user = { ...user, isAvailable: false };
+      sessionStorage.setItem('user', JSON.stringify(user));
+      document.getElementById('requests-list').innerHTML = '<p class="text-muted">You have an active ride.</p>';
+      
+      showActiveRidePanel(activeRide, activeRide.status);
+    }
+
+    if (historyRides.length === 0) {
+      container.innerHTML = '<p class="text-muted">No history yet.</p>';
+      return;
+    }
+
+    historyRides.forEach(ride => {
       const div = document.createElement('div');
       div.className = 'list-card';
       div.innerHTML = `

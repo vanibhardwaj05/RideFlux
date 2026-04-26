@@ -55,6 +55,10 @@
       <div id="active-ride-panel" class="card hidden mb-4" style="border-left: 4px solid var(--primary);">
         <h2>Current Ride</h2>
         <div id="active-ride-details" class="mt-4 mb-4"></div>
+        <div id="passenger-details-container" class="hidden mt-2 mb-4" style="background: rgba(0,0,0,0.05); padding: 0.5rem; border-radius: 4px;">
+          <p style="margin: 0; font-size: 0.9rem;"><strong>Passenger:</strong> <span id="passenger-name-display"></span></p>
+          <p style="margin: 0; font-size: 0.9rem;"><strong>Phone:</strong> <span id="passenger-phone-display"></span></p>
+        </div>
 
         <div id="otp-section" class="form-group flex gap-2 items-center hidden">
           <input type="text" id="otp-input" class="form-control" placeholder="Enter Passenger OTP" maxlength="4" style="width: 200px;">
@@ -63,7 +67,8 @@
 
         <div class="flex gap-4 mt-4">
           <button id="open-chat-btn" class="btn btn-secondary hidden">Chat with Passenger</button>
-          <button id="complete-ride-btn" class="btn btn-danger hidden">Complete Ride</button>
+          <button id="complete-ride-btn" class="btn btn-primary hidden">Complete Ride</button>
+          <button id="cancel-ride-btn" class="btn btn-danger hidden">Cancel Ride</button>
         </div>
       </div>
 
