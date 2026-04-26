@@ -91,6 +91,12 @@ function initSocket() {
       loadRideHistory();
       loadAvailableCabs();
       closeModal('chat-modal');
+    } else if (data.status === 'cancelled') {
+      showToast('Ride was cancelled by the driver.', 'error');
+      resetRideUI();
+      loadRideHistory();
+      loadAvailableCabs();
+      closeModal('chat-modal');
     }
   });
 
@@ -141,6 +147,21 @@ async function handleBookCab(e) {
 }
 
 function calculateEstimatedFare(source, destination) {
+  const src = source.toLowerCase();
+  const dst = destination.toLowerCase();
+
+  // Specific route pricing
+  if ((src.includes('delhi') && dst.includes('patna')) || (src.includes('patna') && dst.includes('delhi'))) {
+    return 890;
+  }
+  if ((src.includes('delhi') && dst.includes('lucknow')) || (src.includes('lucknow') && dst.includes('delhi'))) {
+    return 445;
+  }
+  if ((src.includes('lucknow') && dst.includes('patna')) || (src.includes('patna') && dst.includes('lucknow'))) {
+    return 445;
+  }
+
+  // Fallback formula
   const rawFare = 120 + (source.length * 6) + (destination.length * 8);
   return Math.max(150, Math.min(rawFare, 650));
 }
@@ -149,16 +170,21 @@ function updateRideDetails(ride) {
   const details = [
     `From ${ride.pickupLocation.address} to ${ride.dropLocation.address}`,
     `Fare: ₹${ride.fare}`,
-    `Payment: ${ride.paymentMode || 'Cash'}`
+    `Payment: ${ride.paymentMode || 'Cash'}`,
+    `ETA: 5 mins`
   ];
 
-  if (ride.driver) {
-    details.push(`Driver: ${ride.driver.name}`);
-    details.push(`Phone: ${ride.driver.phoneNumber || 'Not available'}`);
-    details.push(`Vehicle: ${ride.driver.carNumber || 'Not assigned'}`);
-  }
-
   document.getElementById('ride-details-text').textContent = details.join(' | ');
+
+  const driverContainer = document.getElementById('driver-details-container');
+  if (ride.driver) {
+    document.getElementById('driver-name-display').textContent = ride.driver.name || 'N/A';
+    document.getElementById('driver-phone-display').textContent = ride.driver.phoneNumber || 'Not available';
+    document.getElementById('driver-vehicle-display').textContent = ride.driver.carNumber || 'Not assigned';
+    driverContainer.classList.remove('hidden');
+  } else {
+    driverContainer.classList.add('hidden');
+  }
 }
 
 function updateRideUI(status) {
@@ -176,6 +202,7 @@ function resetRideUI() {
   document.getElementById('active-ride-banner').classList.add('hidden');
   document.getElementById('otp-display').classList.add('hidden');
   document.getElementById('open-chat-btn').classList.add('hidden');
+  document.getElementById('driver-details-container').classList.add('hidden');
   document.getElementById('ride-details-text').textContent = 'Your current cab request will appear here.';
   document.getElementById('chat-messages').innerHTML = '<div class="text-center text-muted" style="font-size: 0.8rem;">Chat is ephemeral and disappears after the ride.</div>';
 }
@@ -245,6 +272,13 @@ async function loadAvailableBuses() {
     const source = document.getElementById('bus-source').value.trim();
     const destination = document.getElementById('bus-destination').value.trim();
     
+    const container = document.getElementById('bus-results');
+    
+    if (!source && !destination) {
+      container.innerHTML = '<p class="text-muted">Enter source and destination to search for buses.</p>';
+      return;
+    }
+
     let url = '/bus/search';
     const params = new URLSearchParams();
     if (source) params.append('source', source);
@@ -252,11 +286,10 @@ async function loadAvailableBuses() {
     if (params.toString()) url += `?${params.toString()}`;
 
     const routes = await fetchWithAuth(url);
-    const container = document.getElementById('bus-results');
     container.innerHTML = '';
 
     if (routes.length === 0) {
-      container.innerHTML = '<p class="text-muted">No buses are available right now.</p>';
+      container.innerHTML = '<p class="text-muted">No route available.</p>';
       return;
     }
 
@@ -318,10 +351,37 @@ async function loadRideHistory() {
       return;
     }
 
-    rides.forEach(ride => {
+    const activeRides = rides.filter(r => ['searching', 'accepted', 'started'].includes(r.status));
+    const historyRides = rides.filter(r => ['completed', 'cancelled'].includes(r.status));
+
+    // Restore active ride if it exists
+    if (activeRides.length > 0 && !currentRideId) {
+      const activeRide = activeRides[0];
+      currentRideId = activeRide._id;
+      socket.emit('join-ride-room', currentRideId);
+      
+      document.getElementById('active-ride-banner').classList.remove('hidden');
+      updateRideDetails(activeRide);
+      updateRideUI(activeRide.status);
+      
+      if (activeRide.status === 'accepted' || activeRide.status === 'started') {
+        if (activeRide.status === 'accepted') {
+          document.getElementById('otp-display').classList.remove('hidden');
+          document.querySelector('#otp-display span').textContent = activeRide.otp || '****';
+        }
+        document.getElementById('open-chat-btn').classList.remove('hidden');
+      }
+    }
+
+    if (historyRides.length === 0) {
+      container.innerHTML = '<p class="text-muted">No history yet.</p>';
+      return;
+    }
+
+    historyRides.forEach(ride => {
       const div = document.createElement('div');
       div.className = 'list-card';
-      const statusClass = ride.status === 'completed' ? 'badge-success' : 'badge-warning';
+      const statusClass = ride.status === 'completed' ? 'badge-success' : (ride.status === 'cancelled' ? 'badge-danger' : 'badge-warning');
       div.innerHTML = `
         <div class="list-card-header">
           <div>
