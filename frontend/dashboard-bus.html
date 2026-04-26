@@ -43,6 +43,41 @@
     </section>
 
     <section class="container mt-6">
+      <div class="card mb-4" style="border-left: 4px solid var(--primary);">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Dispatch</p>
+            <h2>Create New Route</h2>
+            <p class="text-muted" style="margin-top: 0.25rem;">Capacity is limited to 10 seats per bus.</p>
+          </div>
+        </div>
+        
+        <form id="create-route-form" class="mt-4">
+          <div class="form-group flex gap-2">
+            <input type="text" id="route-source" class="form-control" placeholder="Source (e.g. Delhi)" required>
+            <input type="text" id="route-destination" class="form-control" placeholder="Destination (e.g. Patna)" required>
+          </div>
+          
+          <div class="form-group flex gap-2 items-center" style="margin-top: 1rem;">
+            <input type="date" id="route-date" class="form-control" required>
+            <input type="time" id="route-time" class="form-control" required>
+            <input type="number" id="route-fare" class="form-control" placeholder="Fare (₹)" required>
+          </div>
+
+          <div class="form-group mt-4">
+            <label><strong>Stoppages (Boarding Points)</strong></label>
+            <div id="stoppages-container" class="flex flex-col gap-2 mt-2">
+              <!-- Stoppages inserted here dynamically -->
+            </div>
+            <button type="button" id="add-stoppage-btn" class="btn btn-outline btn-sm mt-2">+ Add Stoppage</button>
+          </div>
+
+          <button type="submit" class="btn btn-primary mt-4">Create Route</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="container mt-6">
       <div class="dashboard-grid">
         <section class="card">
           <div class="section-head">
