@@ -4,7 +4,7 @@ const rideSchema = new mongoose.Schema({
   passenger: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   driver: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   rejectedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  status: { type: String, enum: ['searching', 'accepted', 'started', 'completed'], default: 'searching' },
+  status: { type: String, enum: ['searching', 'accepted', 'started', 'completed', 'cancelled'], default: 'searching' },
   pickupLocation: {
     address: { type: String, required: true },
     coordinates: { type: [Number], default: undefined }

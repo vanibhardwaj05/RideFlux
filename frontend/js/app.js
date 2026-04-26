@@ -138,3 +138,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+
+// Keep-alive ping for Render free tier (prevents cold starts)
+setInterval(() => {
+  fetch(API_ORIGIN + '/').catch(() => console.log('keep-alive ping'));
+}, 5 * 60 * 1000);

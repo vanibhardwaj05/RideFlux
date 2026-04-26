@@ -31,6 +31,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 function initSocket() {
   socket = io(SOCKET_URL);
 
+  socket.on('connect', () => {
+    if (currentRideId) {
+      socket.emit('join-ride-room', currentRideId);
+    }
+  });
+
   socket.on('receive-message', (data) => {
     appendMessage(data.senderName, data.message, 'other');
   });
@@ -98,6 +104,7 @@ async function loadAvailableRequests() {
         <div class="list-card-header">
           <div>
             <h4>${ride.passenger.name}</h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">Phone: ${ride.passenger.phoneNumber || 'Not available'}</p>
             <p>Pickup: ${ride.pickupLocation.address}</p>
           </div>
           <span class="badge badge-info">₹${ride.fare}</span>

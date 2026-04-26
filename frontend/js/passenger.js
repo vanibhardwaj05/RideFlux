@@ -68,6 +68,12 @@ function formatCurrency(amount) {
 function initSocket() {
   socket = io(SOCKET_URL);
 
+  socket.on('connect', () => {
+    if (currentRideId) {
+      socket.emit('join-ride-room', currentRideId);
+    }
+  });
+
   socket.on('ride-status-update', async (data) => {
     updateRideUI(data.status);
     if (data.status === 'accepted') {

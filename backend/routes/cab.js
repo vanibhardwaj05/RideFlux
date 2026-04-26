@@ -82,7 +82,7 @@ router.post('/accept/:rideId', auth, authorize('cab_driver'), async (req, res) =
     await User.findByIdAndUpdate(req.user.userId, { isAvailable: false });
 
     const populatedRide = await Ride.findById(ride._id)
-      .populate('passenger', 'name')
+      .populate('passenger', 'name phoneNumber')
       .populate('driver', 'name phoneNumber carNumber');
 
     res.json(populatedRide);
@@ -199,7 +199,7 @@ router.get('/available', auth, authorize('cab_driver'), async (req, res) => {
       status: 'searching',
       rejectedBy: { $ne: req.user.userId }
     })
-      .populate('passenger', 'name')
+      .populate('passenger', 'name phoneNumber')
       .sort({ createdAt: -1 });
     res.json(rides);
   } catch (error) {
