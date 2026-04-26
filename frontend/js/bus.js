@@ -70,7 +70,7 @@ async function loadMyRoutes() {
     }
 
     routes.forEach(route => {
-      const busNumber = route.busNumber || 'Bus Route';
+      const busId = route.busId || 'Bus Route';
       const div = document.createElement('div');
       div.className = 'list-card';
       div.style.cursor = 'pointer';
@@ -78,8 +78,8 @@ async function loadMyRoutes() {
       div.innerHTML = `
         <div class="list-card-header">
           <div>
-            <h4>${busNumber} | ${route.source} to ${route.destination}</h4>
-            <p>Bus Number: ${busNumber}</p>
+            <h4>${busId} | ${route.source} to ${route.destination}</h4>
+            <p>Bus ID: ${busId}</p>
           </div>
           <div class="flex gap-2">
             <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); loadManifest('${route._id}')">View Manifest</button>
@@ -122,7 +122,7 @@ async function loadManifest(routeId) {
     document.getElementById('manifest-placeholder').classList.add('hidden');
     document.getElementById('manifest-content').classList.remove('hidden');
 
-    document.getElementById('manifest-route-details').textContent = `${data.route.busNumber || 'Bus Route'} | ${data.route.source} to ${data.route.destination}`;
+    document.getElementById('manifest-route-details').textContent = `${data.route.busId || 'Bus Route'} | ${data.route.source} to ${data.route.destination}`;
     document.getElementById('manifest-date').textContent = new Date(data.route.travelDate).toLocaleDateString();
     document.getElementById('manifest-time').textContent = data.route.departureTime;
 
