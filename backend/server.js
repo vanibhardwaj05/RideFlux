@@ -30,6 +30,11 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/cab', require('./routes/cab'));
 app.use('/api/bus', require('./routes/bus'));
 
+// Health check route for root URL
+app.get('/', (req, res) => {
+  res.status(200).json({ message: 'RideFlux API is successfully running!' });
+});
+
 // Socket.io initialization
 require('./sockets')(io);
 
