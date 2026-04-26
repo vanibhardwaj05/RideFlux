@@ -25,7 +25,7 @@ router.get('/search', async (req, res) => {
     // we fetch matching date routes and filter in JS if source/destination are provided.
     // If it's a huge DB, we'd use complex MongoDB aggregation, but this is fine for this scale.
     let routes = await BusRoute.find(query)
-      .populate('busDriver', 'name')
+      .populate('busDriver', 'name phoneNumber')
       .sort({ travelDate: 1, departureTime: 1 });
 
     if (source || destination) {
@@ -43,6 +43,20 @@ router.get('/search', async (req, res) => {
     }
 
     res.json(routes);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.get('/my-bookings', auth, authorize('passenger'), async (req, res) => {
+  try {
+    const bookings = await BusBooking.find({ passenger: req.user.userId })
+      .populate({
+        path: 'route',
+        populate: { path: 'busDriver', select: 'name phoneNumber' }
+      })
+      .sort({ createdAt: -1 });
+    res.json(bookings);
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
   }

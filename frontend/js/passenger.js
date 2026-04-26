@@ -9,6 +9,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   initSocket();
   loadAvailableCabs();
   loadRideHistory();
+  loadBusBookings();
+
+  // Bus History Tab Switching
+  const upcomingBusBtn = document.getElementById('upcoming-bus-btn');
+  const pastBusBtn = document.getElementById('past-bus-btn');
+
+  upcomingBusBtn.addEventListener('click', () => {
+    upcomingBusBtn.classList.add('active');
+    pastBusBtn.classList.remove('active');
+    loadBusBookings('upcoming');
+  });
+
+  pastBusBtn.addEventListener('click', () => {
+    pastBusBtn.classList.add('active');
+    upcomingBusBtn.classList.remove('active');
+    loadBusBookings('past');
+  });
 
   // Tab switching logic
   const tabBtns = document.querySelectorAll('.tab-btn');
@@ -400,6 +417,56 @@ async function loadRideHistory() {
           <span>Fare: ₹${ride.fare}</span>
           <span>Payment: Cash</span>
           <span>${new Date(ride.createdAt).toLocaleString()}</span>
+        </div>
+      `;
+      container.appendChild(div);
+    });
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+async function loadBusBookings(filter = 'upcoming') {
+  try {
+    const bookings = await fetchWithAuth('/bus/my-bookings');
+    const container = document.getElementById('bus-bookings-list');
+    container.innerHTML = '';
+
+    const now = new Date();
+    now.setHours(0, 0, 0, 0); // Start of today
+
+    const filtered = bookings.filter(b => {
+      const travelDate = new Date(b.route.travelDate);
+      travelDate.setHours(0, 0, 0, 0);
+      return filter === 'upcoming' ? travelDate >= now : travelDate < now;
+    });
+
+    if (filtered.length === 0) {
+      container.innerHTML = `<p class="text-muted">No ${filter} bus bookings found.</p>`;
+      return;
+    }
+
+    filtered.forEach(b => {
+      const div = document.createElement('div');
+      div.className = 'list-card';
+      const route = b.route;
+      const driver = route.busDriver;
+
+      div.innerHTML = `
+        <div class="list-card-header">
+          <div>
+            <h4>${route.source} to ${route.destination}</h4>
+            <p><strong>Seat Number: ${b.seatNumber}</strong></p>
+          </div>
+          <span class="badge badge-info">₹${route.fare}</span>
+        </div>
+        <div class="route-meta" style="grid-template-columns: 1fr 1fr;">
+          <span><strong>Date:</strong> ${new Date(route.travelDate).toLocaleDateString()}</span>
+          <span><strong>Time:</strong> ${route.departureTime}</span>
+          <span><strong>Bus No:</strong> ${route.busNumber || 'N/A'}</span>
+          <span><strong>Driver:</strong> ${driver ? driver.name : 'N/A'}</span>
+          <span><strong>Driver Phone:</strong> ${driver ? driver.phoneNumber : 'N/A'}</span>
+          <span><strong>Payment:</strong> Cash</span>
         </div>
       `;
       container.appendChild(div);
