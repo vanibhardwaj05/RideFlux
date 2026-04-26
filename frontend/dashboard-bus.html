@@ -54,14 +54,24 @@
         
         <form id="create-route-form" class="mt-4">
           <div class="form-group flex gap-2">
+            <input type="text" id="route-bus-id" class="form-control" placeholder="Bus ID (e.g. RJ14-PA-1234)" required>
             <input type="text" id="route-source" class="form-control" placeholder="Source (e.g. Delhi)" required>
             <input type="text" id="route-destination" class="form-control" placeholder="Destination (e.g. Patna)" required>
           </div>
           
           <div class="form-group flex gap-2 items-center" style="margin-top: 1rem;">
-            <input type="date" id="route-date" class="form-control" required>
-            <input type="time" id="route-time" class="form-control" required>
-            <input type="number" id="route-fare" class="form-control" placeholder="Fare (₹)" required>
+            <div style="flex: 1;">
+              <label class="form-label" style="font-size: 0.75rem;">Travel Date</label>
+              <input type="date" id="route-date" class="form-control" required>
+            </div>
+            <div style="flex: 1;">
+              <label class="form-label" style="font-size: 0.75rem;">Departure Time</label>
+              <input type="time" id="route-time" class="form-control" required>
+            </div>
+            <div style="flex: 1;">
+              <label class="form-label" style="font-size: 0.75rem;">Fare (₹)</label>
+              <input type="number" id="route-fare" class="form-control" placeholder="Fare" required>
+            </div>
           </div>
 
           <div class="form-group mt-4">
@@ -112,8 +122,8 @@
               <thead>
                 <tr>
                   <th>Seat</th>
-                  <th>Passenger Name</th>
-                  <th>Payment</th>
+                  <th>Passenger</th>
+                  <th>Boarding Point</th>
                 </tr>
               </thead>
               <tbody id="manifest-table-body"></tbody>

@@ -64,7 +64,7 @@ router.get('/my-bookings', auth, authorize('passenger'), async (req, res) => {
 
 router.post('/book', auth, authorize('passenger'), async (req, res) => {
   try {
-    const { routeId, seatNumber } = req.body;
+    const { routeId, seatNumber, boardingPoint } = req.body;
 
     const route = await BusRoute.findById(routeId);
     if (!route) {
@@ -76,15 +76,25 @@ router.post('/book', auth, authorize('passenger'), async (req, res) => {
     }
 
     // Check if seat is already booked
-    const existingBooking = await BusBooking.findOne({ route: routeId, seatNumber });
+    const existingBooking = await BusBooking.findOne({ route: routeId, seatNumber, status: 'active' });
     if (existingBooking) {
       return res.status(400).json({ error: 'Seat already booked' });
+    }
+
+    // Find boarding time from route stops or source
+    let boardingTime = route.departureTime;
+    if (boardingPoint !== route.source) {
+      const stop = route.stops.find(s => s.name === boardingPoint);
+      if (stop) boardingTime = stop.arrivalTime;
     }
 
     const booking = new BusBooking({
       passenger: req.user.userId,
       route: routeId,
-      seatNumber
+      seatNumber,
+      boardingPoint,
+      boardingTime,
+      status: 'active'
     });
 
     await booking.save();
@@ -93,6 +103,25 @@ router.post('/book', auth, authorize('passenger'), async (req, res) => {
     await route.save();
 
     res.status(201).json(booking);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/booking/cancel/:bookingId', auth, authorize('passenger'), async (req, res) => {
+  try {
+    const booking = await BusBooking.findOne({ _id: req.params.bookingId, passenger: req.user.userId, status: 'active' });
+    if (!booking) {
+      return res.status(404).json({ error: 'Active booking not found' });
+    }
+
+    booking.status = 'cancelled';
+    await booking.save();
+
+    // Re-increment available seats
+    await BusRoute.findByIdAndUpdate(booking.route, { $inc: { availableSeats: 1 } });
+
+    res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
   }
@@ -116,8 +145,8 @@ router.get('/manifest/:routeId', auth, authorize('bus_driver'), async (req, res)
       return res.status(403).json({ error: 'Unauthorized to view this manifest' });
     }
 
-    const bookings = await BusBooking.find({ route: routeId })
-      .populate('passenger', 'name email')
+    const bookings = await BusBooking.find({ route: routeId, status: 'active' })
+      .populate('passenger', 'name email phoneNumber')
       .sort({ seatNumber: 1 });
 
     res.json({ route, bookings });
@@ -128,13 +157,14 @@ router.get('/manifest/:routeId', auth, authorize('bus_driver'), async (req, res)
 
 router.post('/create-route', auth, authorize('bus_driver'), async (req, res) => {
   try {
-    const { source, destination, stops, travelDate, departureTime, fare } = req.body;
+    const { busId, source, destination, stops, travelDate, departureTime, fare } = req.body;
 
-    if (!source || !destination || !travelDate || !departureTime || !fare) {
+    if (!busId || !source || !destination || !travelDate || !departureTime || !fare) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
     const route = new BusRoute({
+      busId,
       source,
       destination,
       stops: stops || [],
@@ -160,8 +190,10 @@ router.delete('/route/:routeId', auth, authorize('bus_driver'), async (req, res)
       return res.status(404).json({ error: 'Route not found or unauthorized' });
     }
     
+    // Instead of deleting everything, we mark the route as deleted/cancelled 
+    // and update all bookings to cancelled_by_driver
+    await BusBooking.updateMany({ route: req.params.routeId, status: 'active' }, { status: 'cancelled_by_driver' });
     await BusRoute.deleteOne({ _id: req.params.routeId });
-    await BusBooking.deleteMany({ route: req.params.routeId });
     
     res.json({ success: true });
   } catch (error) {

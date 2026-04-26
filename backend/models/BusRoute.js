@@ -1,10 +1,13 @@
 const mongoose = require('mongoose');
 
 const busRouteSchema = new mongoose.Schema({
-  busNumber: { type: String, default: '' },
+  busId: { type: String, required: true },
   source: { type: String, required: true },
   destination: { type: String, required: true },
-  stops: { type: [String], default: [] },
+  stops: [{ 
+    name: { type: String, required: true }, 
+    arrivalTime: { type: String, required: true } 
+  }],
   travelDate: { type: Date, required: true },
   departureTime: { type: String, required: true }, // e.g. "10:00 AM"
   totalSeats: { type: Number, default: 10 },

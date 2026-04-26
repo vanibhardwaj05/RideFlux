@@ -317,21 +317,30 @@ async function loadAvailableBuses() {
     }
 
     routes.forEach(route => {
-      const busNumber = route.busNumber || 'Bus Route';
+      const busId = route.busId || 'Bus';
       const div = document.createElement('div');
       div.className = 'list-card';
+      
+      const stopsHtml = route.stops.map(s => `<li>${s.name} (${s.arrivalTime})</li>`).join('');
+      const stopsList = route.stops.length > 0 ? `<ul style="font-size: 0.8rem; margin: 0.5rem 0; padding-left: 1.2rem;">${stopsHtml}</ul>` : '<p style="font-size: 0.8rem; margin: 0.5rem 0;">No stops</p>';
+
       div.innerHTML = `
         <div class="list-card-header">
           <div>
-            <h4>${busNumber} | ${route.source} to ${route.destination}</h4>
+            <h4>Bus: ${busId} | ${route.source} to ${route.destination}</h4>
             <p>Driver: ${(route.busDriver && route.busDriver.name) || 'Assigned Driver'}</p>
           </div>
-          <button class="btn btn-primary btn-sm" onclick="bookBus('${route._id}')">Book Seat</button>
+          <button class="btn btn-primary btn-sm" onclick="bookBus('${route._id}', '${route.source}', '${JSON.stringify(route.stops.map(s => s.name)).replace(/"/g, '&quot;')}')">Book Seat</button>
         </div>
         <div class="route-meta">
           <span>Departure: ${route.departureTime} on ${new Date(route.travelDate).toLocaleDateString()}</span>
           <span>Fare: ₹${route.fare}</span>
           <span>${route.availableSeats} seats left</span>
+        </div>
+        <div style="margin-top: 0.5rem; border-top: 1px solid #eee; padding-top: 0.5rem;">
+          <p style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">BOARDING POINTS & TIMES:</p>
+          <p style="font-size: 0.8rem; margin-bottom: 0.2rem;">${route.source} (${route.departureTime}) - START</p>
+          ${stopsList}
         </div>
       `;
       container.appendChild(div);
@@ -341,23 +350,34 @@ async function loadAvailableBuses() {
   }
 }
 
-async function bookBus(routeId) {
-  const seatNumber = prompt('Enter a seat number (1-40):');
+async function bookBus(routeId, source, stopsJson) {
+  const stops = JSON.parse(stopsJson);
+  const points = [source, ...stops];
+  const boardingPoint = prompt(`Where will you board?\nAvailable: ${points.join(', ')}`);
+  
+  if (!boardingPoint) return;
+  if (!points.includes(boardingPoint)) {
+    showToast('Invalid boarding point selected.', 'error');
+    return;
+  }
+
+  const seatNumber = prompt('Enter a seat number (1-10):');
   if (!seatNumber) return;
   const parsedSeatNumber = parseInt(seatNumber, 10);
 
-  if (Number.isNaN(parsedSeatNumber) || parsedSeatNumber < 1 || parsedSeatNumber > 40) {
-    showToast('Enter a valid seat number between 1 and 40.', 'error');
+  if (Number.isNaN(parsedSeatNumber) || parsedSeatNumber < 1 || parsedSeatNumber > 10) {
+    showToast('Enter a valid seat number between 1 and 10.', 'error');
     return;
   }
 
   try {
     await fetchWithAuth('/bus/book', {
       method: 'POST',
-      body: JSON.stringify({ routeId, seatNumber: parsedSeatNumber })
+      body: JSON.stringify({ routeId, seatNumber: parsedSeatNumber, boardingPoint })
     });
     showToast('Seat booked successfully! Please pay cash to the driver.', 'success');
     loadAvailableBuses();
+    loadBusBookings();
   } catch (error) {
     showToast(error.message, 'error');
   }
@@ -450,28 +470,58 @@ async function loadBusBookings(filter = 'upcoming') {
       const div = document.createElement('div');
       div.className = 'list-card';
       const route = b.route;
-      const driver = route.busDriver;
+      const driver = route ? route.busDriver : null;
 
-      div.innerHTML = `
-        <div class="list-card-header">
-          <div>
-            <h4>${route.source} to ${route.destination}</h4>
-            <p><strong>Seat Number: ${b.seatNumber}</strong></p>
+      if (!route) {
+        div.innerHTML = `
+          <div class="list-card-header">
+            <h4>Route Information Unavailable</h4>
+            <span class="badge badge-danger">CANCELLED</span>
           </div>
-          <span class="badge badge-info">₹${route.fare}</span>
-        </div>
-        <div class="route-meta" style="grid-template-columns: 1fr 1fr;">
-          <span><strong>Date:</strong> ${new Date(route.travelDate).toLocaleDateString()}</span>
-          <span><strong>Time:</strong> ${route.departureTime}</span>
-          <span><strong>Bus No:</strong> ${route.busNumber || 'N/A'}</span>
-          <span><strong>Driver:</strong> ${driver ? driver.name : 'N/A'}</span>
-          <span><strong>Driver Phone:</strong> ${driver ? driver.phoneNumber : 'N/A'}</span>
-          <span><strong>Payment:</strong> Cash</span>
-        </div>
-      `;
+          <div class="route-meta">
+            <p style="color: var(--danger); font-weight: 600;">Sorry for the inconvenience. This route has been cancelled by the driver.</p>
+          </div>
+        `;
+      } else {
+        const isCancelledByDriver = b.status === 'cancelled_by_driver';
+        const isCancelledByMe = b.status === 'cancelled';
+        const isActive = b.status === 'active';
+
+        div.innerHTML = `
+          <div class="list-card-header">
+            <div>
+              <h4>Bus: ${route.busId} | ${route.source} to ${route.destination}</h4>
+              <p><strong>Seat Number: ${b.seatNumber}</strong></p>
+            </div>
+            ${isActive ? `<button class="btn btn-outline btn-sm" style="color: var(--danger); border-color: var(--danger);" onclick="cancelBusBooking('${b._id}')">Cancel</button>` : ''}
+            ${isCancelledByMe ? '<span class="badge badge-danger">YOU CANCELLED</span>' : ''}
+            ${isCancelledByDriver ? '<span class="badge badge-danger">DRIVER CANCELLED</span>' : ''}
+          </div>
+          <div class="route-meta" style="grid-template-columns: 1fr 1fr;">
+            <span><strong>Boarding:</strong> ${b.boardingPoint}</span>
+            <span><strong>Time:</strong> ${b.boardingTime}</span>
+            <span><strong>Date:</strong> ${new Date(route.travelDate).toLocaleDateString()}</span>
+            <span><strong>Driver Phone:</strong> ${driver ? driver.phoneNumber : 'N/A'}</span>
+            <span><strong>Fare:</strong> ₹${route.fare} (Cash)</span>
+          </div>
+          ${isCancelledByDriver ? '<p style="color: var(--danger); font-size: 0.8rem; margin-top: 0.5rem; font-weight: 600;">Sorry for the inconvenience. The driver cancelled this trip.</p>' : ''}
+        `;
+      }
       container.appendChild(div);
     });
   } catch (error) {
     console.error(error);
+  }
+}
+
+async function cancelBusBooking(bookingId) {
+  if (!confirm('Are you sure you want to cancel this booking?')) return;
+
+  try {
+    await fetchWithAuth(`/bus/booking/cancel/${bookingId}`, { method: 'POST' });
+    showToast('Booking cancelled.', 'success');
+    loadBusBookings();
+  } catch (error) {
+    showToast(error.message, 'error');
   }
 }

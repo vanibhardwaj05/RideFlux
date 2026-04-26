@@ -12,11 +12,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (addStoppageBtn) {
     addStoppageBtn.addEventListener('click', () => {
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.className = 'form-control stoppage-input';
-      input.placeholder = 'Stoppage (e.g. Lucknow)';
-      stoppagesContainer.appendChild(input);
+      const row = document.createElement('div');
+      row.className = 'flex gap-2 stoppage-row';
+      row.innerHTML = `
+        <input type="text" class="form-control stoppage-name" placeholder="Stop Name" style="flex: 2;" required>
+        <input type="time" class="form-control stoppage-time" style="flex: 1;" required>
+        <button type="button" class="btn btn-outline btn-sm remove-stop-btn" style="color: var(--danger); border-color: var(--danger);">×</button>
+      `;
+      stoppagesContainer.appendChild(row);
+
+      row.querySelector('.remove-stop-btn').addEventListener('click', () => row.remove());
     });
   }
 
@@ -24,21 +29,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     createRouteForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       
+      const busId = document.getElementById('route-bus-id').value.trim();
       const source = document.getElementById('route-source').value.trim();
       const destination = document.getElementById('route-destination').value.trim();
       const travelDate = document.getElementById('route-date').value;
       const departureTime = document.getElementById('route-time').value;
       const fare = document.getElementById('route-fare').value;
       
-      const stoppageInputs = document.querySelectorAll('.stoppage-input');
-      const stops = Array.from(stoppageInputs).map(inp => inp.value.trim()).filter(val => val !== '');
+      const stoppageRows = document.querySelectorAll('.stoppage-row');
+      const stops = Array.from(stoppageRows).map(row => ({
+        name: row.querySelector('.stoppage-name').value.trim(),
+        arrivalTime: row.querySelector('.stoppage-time').value
+      })).filter(s => s.name !== '');
 
       try {
         await fetchWithAuth('/bus/create-route', {
           method: 'POST',
-          body: JSON.stringify({ source, destination, stops, travelDate, departureTime, fare })
+          body: JSON.stringify({ busId, source, destination, stops, travelDate, departureTime, fare })
         });
-        showToast('Route created successfully! Capacity is set to 10 seats.', 'success');
+        showToast('Route created successfully!', 'success');
         createRouteForm.reset();
         stoppagesContainer.innerHTML = '';
         loadMyRoutes();
@@ -130,9 +139,13 @@ async function loadManifest(routeId) {
       tr.style.borderBottom = '1px solid var(--border)';
       tr.innerHTML = `
         <td style="padding: 0.75rem;"><span class="badge badge-info">Seat ${booking.seatNumber}</span></td>
-        <td style="padding: 0.75rem;">${booking.passenger.name}</td>
         <td style="padding: 0.75rem;">
-          <span class="badge badge-warning" style="font-size: 0.7rem;">${booking.paymentMode}</span>
+          <div>${booking.passenger.name}</div>
+          <div style="font-size: 0.7rem; color: var(--text-muted);">${booking.passenger.phoneNumber || 'No Phone'}</div>
+        </td>
+        <td style="padding: 0.75rem;">
+          <div style="font-size: 0.85rem;">${booking.boardingPoint}</div>
+          <div style="font-size: 0.7rem; color: var(--text-muted);">${booking.boardingTime}</div>
         </td>
       `;
       tbody.appendChild(tr);
