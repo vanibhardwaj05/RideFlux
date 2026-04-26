@@ -128,7 +128,11 @@ router.post('/start/:rideId', auth, authorize('cab_driver'), async (req, res) =>
     ride.status = 'started';
     await ride.save();
 
-    res.json(ride);
+    const populatedRide = await Ride.findById(ride._id)
+      .populate('passenger', 'name phoneNumber')
+      .populate('driver', 'name phoneNumber carNumber');
+
+    res.json(populatedRide);
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
   }
@@ -146,10 +150,14 @@ router.post('/complete/:rideId', auth, authorize('cab_driver'), async (req, res)
     ride.status = 'completed';
     await ride.save();
 
-    // Keep the driver offline after completion until they explicitly go online again.
-    await User.findByIdAndUpdate(req.user.userId, { isAvailable: false });
+    // Make the driver available again
+    await User.findByIdAndUpdate(req.user.userId, { isAvailable: true });
 
-    res.json(ride);
+    const populatedRide = await Ride.findById(ride._id)
+      .populate('passenger', 'name phoneNumber')
+      .populate('driver', 'name phoneNumber carNumber');
+
+    res.json(populatedRide);
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
   }
@@ -183,8 +191,8 @@ router.get('/history', auth, async (req, res) => {
       : { driver: req.user.userId };
 
     const rides = await Ride.find(query)
-      .populate('passenger', 'name')
-      .populate('driver', 'name')
+      .populate('passenger', 'name phoneNumber')
+      .populate('driver', 'name phoneNumber carNumber')
       .sort({ createdAt: -1 });
 
     res.json(rides);
