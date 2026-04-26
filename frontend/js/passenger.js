@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Load data for the selected tab if needed
       if (targetTab === 'bus') {
         loadAvailableBuses();
+        loadBusBookings();
       } else {
         loadAvailableCabs();
       }
@@ -330,7 +331,7 @@ async function loadAvailableBuses() {
             <h4>Bus: ${busId} | ${route.source} to ${route.destination}</h4>
             <p>Driver: ${(route.busDriver && route.busDriver.name) || 'Assigned Driver'}</p>
           </div>
-          <button class="btn btn-primary btn-sm" onclick="bookBus('${route._id}', '${route.source}', '${JSON.stringify(route.stops.map(s => s.name)).replace(/"/g, '&quot;')}')">Book Seat</button>
+          <button class="btn btn-primary btn-sm" onclick="bookBus('${route._id}', '${route.source}', '${JSON.stringify(route.stops).replace(/"/g, '&quot;')}', ${route.fare}, '${route.departureTime}')">Book Seat</button>
         </div>
         <div class="route-meta">
           <span>Departure: ${route.departureTime} on ${new Date(route.travelDate).toLocaleDateString()}</span>
@@ -350,37 +351,58 @@ async function loadAvailableBuses() {
   }
 }
 
-async function bookBus(routeId, source, stopsJson) {
+async function bookBus(routeId, source, stopsJson, fare, departureTime) {
   const stops = JSON.parse(stopsJson);
-  const points = [source, ...stops];
-  const boardingPoint = prompt(`Where will you board?\nAvailable: ${points.join(', ')}`);
+  const modal = document.getElementById('bus-booking-modal');
+  const form = document.getElementById('bus-booking-form');
+  const boardingSelect = document.getElementById('booking-boarding-point');
+  const timeHint = document.getElementById('boarding-time-hint');
   
-  if (!boardingPoint) return;
-  if (!points.includes(boardingPoint)) {
-    showToast('Invalid boarding point selected.', 'error');
-    return;
-  }
+  document.getElementById('booking-route-id').value = routeId;
+  document.getElementById('booking-fare-display').textContent = `₹${fare}`;
+  
+  // Populate boarding points
+  boardingSelect.innerHTML = '';
+  const points = [{ name: source, time: departureTime }, ...stops];
+  points.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.name;
+    opt.textContent = `${p.name} (${p.time})`;
+    opt.dataset.time = p.time;
+    boardingSelect.appendChild(opt);
+  });
 
-  const seatNumber = prompt('Enter a seat number (1-10):');
-  if (!seatNumber) return;
-  const parsedSeatNumber = parseInt(seatNumber, 10);
+  boardingSelect.addEventListener('change', () => {
+    const selected = boardingSelect.options[boardingSelect.selectedIndex];
+    timeHint.textContent = `Boarding time: ${selected.dataset.time}`;
+  });
+  timeHint.textContent = `Boarding time: ${departureTime}`;
 
-  if (Number.isNaN(parsedSeatNumber) || parsedSeatNumber < 1 || parsedSeatNumber > 10) {
-    showToast('Enter a valid seat number between 1 and 10.', 'error');
-    return;
-  }
+  modal.classList.add('active');
+  
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    const boardingPoint = boardingSelect.value;
+    const seatNumber = parseInt(document.getElementById('booking-seat-number').value, 10);
 
-  try {
-    await fetchWithAuth('/bus/book', {
-      method: 'POST',
-      body: JSON.stringify({ routeId, seatNumber: parsedSeatNumber, boardingPoint })
-    });
-    showToast('Seat booked successfully! Please pay cash to the driver.', 'success');
-    loadAvailableBuses();
-    loadBusBookings();
-  } catch (error) {
-    showToast(error.message, 'error');
-  }
+    if (seatNumber < 1 || seatNumber > 10) {
+      showToast('Seat must be between 1 and 10.', 'error');
+      return;
+    }
+
+    try {
+      await fetchWithAuth('/bus/book', {
+        method: 'POST',
+        body: JSON.stringify({ routeId, seatNumber, boardingPoint })
+      });
+      showToast('Seat booked successfully!', 'success');
+      modal.classList.remove('active');
+      loadAvailableBuses();
+      loadBusBookings();
+    } catch (error) {
+      showToast(error.message, 'error');
+    }
+  };
 }
 
 async function loadRideHistory() {
@@ -456,9 +478,19 @@ async function loadBusBookings(filter = 'upcoming') {
     now.setHours(0, 0, 0, 0); // Start of today
 
     const filtered = bookings.filter(b => {
+      if (!b.route) return filter === 'past'; // If route is gone, it's history
+      
       const travelDate = new Date(b.route.travelDate);
       travelDate.setHours(0, 0, 0, 0);
-      return filter === 'upcoming' ? travelDate >= now : travelDate < now;
+      
+      const isPastDate = travelDate < now;
+      const isCancelled = b.status !== 'active';
+
+      if (filter === 'upcoming') {
+        return !isPastDate && !isCancelled;
+      } else {
+        return isPastDate || isCancelled;
+      }
     });
 
     if (filtered.length === 0) {
