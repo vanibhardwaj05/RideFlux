@@ -189,6 +189,6 @@ JWT_SECRET=supersecretjwtkey123
 - Set environment variables in Render dashboard
 - Change `MONGO_URI` to your MongoDB Atlas connection string
 
-**Frontend → Vercel / Netlify**
+**Frontend → Vercel
 - Deploy the `frontend/` folder as a static site
 - Update `API_URL` and `SOCKET_URL` in `frontend/js/app.js` to point to the Render backend URL
