@@ -146,8 +146,3 @@ npm run dev   # Start the backend engine
 ### 4. Open App
 Simply open `frontend/index.html` in your browser. Use `passenger@test.com` / `password123` to log in.
 
----
-
-<div align="center">
-  Built with ❤️ by Vani.
-</div>
