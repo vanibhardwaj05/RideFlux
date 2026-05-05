@@ -1,183 +1,76 @@
 <div align="center">
   <img src="assets/banner.png" alt="RideFlux Banner" width="100%">
 
-  # 🚖 RideFlux 🚌
+  # ⚡️ RideFlux
+  **The ultimate high-performance booking ecosystem for Cabs & Buses.**
 
-  **A High-Performance Cab & Bus Booking Ecosystem**
-  *Engineered with the Anti-Gravity Architecture — Minimal Dependencies, Maximum Velocity.*
+  [✨ Features](#-features) • [📸 Showcase](#-showcase) • [🚀 Quick Start](#-quick-start) • [🛠 Tech](#-tech-stack)
 
-  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-  [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
-  [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-blue.svg)](http://makeapullrequest.com)
-  [![Style: Glassmorphism](https://img.shields.io/badge/Style-Glassmorphism-purple.svg)](https://en.wikipedia.org/wiki/Glassmorphism)
-
-  [Overview](#-overview) • [Visual Tour](#-visual-tour) • [Key Features](#-key-features) • [Tech Stack](#-tech-stack) • [Getting Started](#-getting-started) • [API Documentation](#-api-documentation)
+  ---
 </div>
 
----
+## 🌟 What is RideFlux?
+**RideFlux** is a modern transportation platform built for speed and simplicity. It connects passengers with cab and bus drivers through a sleek, glassmorphic interface and real-time synchronization.
 
-## 🌟 Overview
-
-**RideFlux** is a state-of-the-art transportation platform designed to bridge the gap between passengers and drivers (Cabs & Buses). By leveraging real-time socket communication and a lightweight backend, RideFlux provides a seamless booking experience without the overhead of heavy frameworks.
-
-### 🚀 Why RideFlux?
-- **Anti-Gravity Architecture**: Built to be dependency-light, ensuring rapid deployment and extreme performance.
-- **Privacy-First Chat**: Ephemeral, room-based communication that never touches the database.
-- **Unified Ecosystem**: Manage Cabs and Buses in a single, intuitive interface.
-- **Glassmorphism UI**: A modern, premium design system that feels alive and responsive.
+### 💎 Key Highlights
+*   🚀 **Blazing Fast**: Zero-build frontend for maximum performance.
+*   🔒 **Secure**: JWT authentication and role-based access.
+*   💬 **Live Chat**: Instant, ephemeral messaging during rides.
+*   🚌 **Unified**: Manage both city cabs and long-route buses in one app.
 
 ---
 
-## 📸 Visual Tour
+## 📸 Showcase
+Explore the premium glassmorphic design of RideFlux.
 
 <div align="center">
   <table>
     <tr>
-      <td width="50%"><img src="assets/screenshots/1_landing.png" alt="Landing Page"><br><sub><b>Landing Page</b></sub></td>
-      <td width="50%"><img src="assets/screenshots/2_login.png" alt="Login"><br><sub><b>Secure Auth</b></sub></td>
+      <td><img src="assets/screenshots/1_landing.png" width="100%"><br><b>Modern Landing</b></td>
+      <td><img src="assets/screenshots/4_passenger_dashboard.png" width="100%"><br><b>Passenger Hub</b></td>
     </tr>
     <tr>
-      <td width="50%"><img src="assets/screenshots/4_passenger_dashboard.png" alt="Passenger Dashboard"><br><sub><b>Passenger Hub</b></sub></td>
-      <td width="50%"><img src="assets/screenshots/5_cab_dashboard.png" alt="Cab Driver Dashboard"><br><sub><b>Cab Driver Interface</b></sub></td>
+      <td><img src="assets/screenshots/5_cab_dashboard.png" width="100%"><br><b>Driver Dashboard</b></td>
+      <td><img src="assets/screenshots/6_bus_dashboard.png" width="100%"><br><b>Bus Management</b></td>
     </tr>
   </table>
 </div>
 
 ---
 
-## ✨ Key Features
+## 🚀 Quick Start
 
-### 🔐 Advanced Authentication
-- **Secure Sessions**: JWT-based authentication with automatic expiration handling.
-- **Role-Based Access**: Specialized dashboards for **Passengers**, **Cab Drivers**, and **Bus Drivers**.
-- **Smart Onboarding**: Dynamic registration forms tailored to user roles.
+Get up and running in less than 2 minutes.
 
-### 🚖 Cab Booking Engine
-- **Real-Time Dispatch**: Ride requests are broadcasted instantly to all available drivers.
-- **Lifecycle Management**: Full tracking from `Searching` → `Accepted` → `Started` → `Completed`.
-- **OTP Verification**: Secure 4-digit verification to ensure passenger safety.
-- **Live Status Updates**: Powered by Socket.io for zero-latency feedback.
+### 1. Clone & Install
+```bash
+git clone https://github.com/vanibhardwaj05/RideFlux.git
+cd RideFlux
+npm install && npm run backend-install
+```
 
-### 💬 Ride-Time Ephemeral Chat
-- **Instant Messaging**: Real-time communication during active rides.
-- **Zero Footprint**: Messages exist only in memory and disappear the moment the ride ends.
-- **Room-Based**: Private, ride-specific chat rooms.
+### 2. Configure & Run
+Add your `MONGO_URI` to `backend/.env`, then:
+```bash
+npm run seed  # Seed test accounts
+npm run dev   # Start the engine
+```
 
-### 🚌 Bus Booking System
-- **Comprehensive Search**: View routes, departure times, fares, and seat availability at a glance.
-- **Seat Selection**: Interactive booking for specific seat numbers.
-- **Manifest Management**: Dedicated interface for bus drivers to manage passenger lists.
+### 3. Open
+Open `frontend/index.html` and use `passenger@test.com` / `password123` to log in.
 
 ---
 
 ## 🛠 Tech Stack
-
-| Layer | Technology | Description |
-| :--- | :--- | :--- |
-| **Frontend** | Vanilla HTML5, CSS3, JS (ES6+) | Blazing fast, zero-build frontend. |
-| **Backend** | Node.js + Express | Robust and scalable API layer. |
-| **Database** | MongoDB + Mongoose | Flexible NoSQL schema for rapid iteration. |
-| **Real-time** | Socket.io | Bi-directional communication for live updates. |
-| **Security** | JWT + Bcrypt | Industry-standard encryption and auth. |
-
----
-
-## 📂 Project Structure
-
-<details>
-<summary><b>Click to expand directory tree</b></summary>
-
-```text
-RideFlux/
-├── assets/                     # Repository assets (Banner, Screenshots)
-├── frontend/                   # Zero-build static frontend
-│   ├── index.html              # Modern Landing Page
-│   ├── login.html              # Authentication
-│   ├── register.html           # Role-based Registration
-│   ├── dashboard-passenger.html # Passenger Hub
-│   ├── css/style.css           # Premium Glassmorphism Design System
-│   └── js/                     # Modular Logic
-│
-└── backend/                    # Node.js API
-    ├── server.js               # Entry Point
-    ├── seed.js                 # Database Seeder
-    ├── models/                 # Mongoose Schemas
-    ├── routes/                 # Express Controllers
-    └── sockets/                # Real-time Handlers
-```
-</details>
-
----
-
-## 🚀 Getting Started
-
-### 1. Prerequisites
-- **Node.js** (v18+)
-- **MongoDB** (Local or Atlas)
-
-### 2. Installation & Setup
-
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/RideFlux.git
-cd RideFlux
-
-# Install Dependencies (Root & Backend)
-npm install
-npm run backend-install
-```
-
-### 3. Run the Application
-
-```bash
-# Seed initial data (Admin/Test accounts)
-npm run seed
-
-# Start the server
-npm run dev
-```
-
-### 4. Launch Frontend
-Simply open `frontend/index.html` in your browser or use a live server extension.
-
----
-
-## 🧪 Test Accounts
-
-| Role | Email | Password |
-| :--- | :--- | :--- |
-| **Passenger** | `passenger@test.com` | `password123` |
-| **Cab Driver** | `driver@test.com` | `password123` |
-| **Bus Driver** | `bus@test.com` | `password123` |
-
----
-
-## 📖 API Documentation
-
-<details>
-<summary><b>View Authentication Endpoints</b></summary>
-
-| Method | Endpoint | Access |
-| :--- | :--- | :--- |
-| POST | `/api/auth/register` | Public |
-| POST | `/api/auth/login` | Public |
-</details>
-
-<details>
-<summary><b>View Cab Service Endpoints</b></summary>
-
-| Method | Endpoint | Access |
-| :--- | :--- | :--- |
-| GET | `/api/cab/drivers` | Passenger |
-| POST | `/api/cab/request` | Passenger |
-| POST | `/api/cab/accept/:rideId` | Cab Driver |
-| POST | `/api/cab/start/:rideId` | Cab Driver |
-| POST | `/api/cab/complete/:rideId` | Cab Driver |
-</details>
+| Role | Tech |
+| :--- | :--- |
+| **Frontend** | Vanilla JS, CSS3, HTML5 |
+| **Backend** | Node.js, Express |
+| **Database** | MongoDB, Mongoose |
+| **Real-time** | Socket.io |
 
 ---
 
 <div align="center">
-  <p>Built with ❤️ by the RideFlux Team</p>
-  <p><i>Pushing the boundaries of minimal, high-performance web architecture.</i></p>
+  Built with ❤️ for the future of transportation.
 </div>
