@@ -1,8 +1,14 @@
 const puppeteer = require('puppeteer');
 const path = require('path');
 
-const BASE = 'file:///Users/vanibhardwaj/Desktop/RideFlux/frontend';
-const OUT = '/Users/vanibhardwaj/.gemini/antigravity/brain/68606fda-28c4-44ad-9353-1e4479954b48';
+const BASE = `file://${path.join(__dirname, 'frontend')}`;
+const OUT = path.join(__dirname, 'assets', 'screenshots');
+
+// Ensure screenshots directory exists
+const fs = require('fs');
+if (!fs.existsSync(OUT)) {
+  fs.mkdirSync(OUT, { recursive: true });
+}
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 

@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="file:///Users/vanibhardwaj/.gemini/antigravity/brain/384e6c57-fcd7-4936-979d-a42cf4558277/rideflux_banner_1777922437538.png" alt="RideFlux Banner" width="100%">
+  <img src="assets/banner.png" alt="RideFlux Banner" width="100%">
 
   # 🚖 RideFlux 🚌
 
@@ -11,7 +11,7 @@
   [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-blue.svg)](http://makeapullrequest.com)
   [![Style: Glassmorphism](https://img.shields.io/badge/Style-Glassmorphism-purple.svg)](https://en.wikipedia.org/wiki/Glassmorphism)
 
-  [Overview](#-overview) • [Key Features](#-key-features) • [Tech Stack](#-tech-stack) • [Getting Started](#-getting-started) • [API Documentation](#-api-documentation)
+  [Overview](#-overview) • [Visual Tour](#-visual-tour) • [Key Features](#-key-features) • [Tech Stack](#-tech-stack) • [Getting Started](#-getting-started) • [API Documentation](#-api-documentation)
 </div>
 
 ---
@@ -25,6 +25,23 @@
 - **Privacy-First Chat**: Ephemeral, room-based communication that never touches the database.
 - **Unified Ecosystem**: Manage Cabs and Buses in a single, intuitive interface.
 - **Glassmorphism UI**: A modern, premium design system that feels alive and responsive.
+
+---
+
+## 📸 Visual Tour
+
+<div align="center">
+  <table>
+    <tr>
+      <td width="50%"><img src="assets/screenshots/1_landing.png" alt="Landing Page"><br><sub><b>Landing Page</b></sub></td>
+      <td width="50%"><img src="assets/screenshots/2_login.png" alt="Login"><br><sub><b>Secure Auth</b></sub></td>
+    </tr>
+    <tr>
+      <td width="50%"><img src="assets/screenshots/4_passenger_dashboard.png" alt="Passenger Dashboard"><br><sub><b>Passenger Hub</b></sub></td>
+      <td width="50%"><img src="assets/screenshots/5_cab_dashboard.png" alt="Cab Driver Dashboard"><br><sub><b>Cab Driver Interface</b></sub></td>
+    </tr>
+  </table>
+</div>
 
 ---
 
@@ -51,10 +68,6 @@
 - **Seat Selection**: Interactive booking for specific seat numbers.
 - **Manifest Management**: Dedicated interface for bus drivers to manage passenger lists.
 
-### 📋 History & Analytics
-- **Trips Archive**: Access past rides with detailed driver/passenger info and pricing.
-- **Payment tracking**: Cash-based payment confirmation for drivers.
-
 ---
 
 ## 🛠 Tech Stack
@@ -76,26 +89,20 @@
 
 ```text
 RideFlux/
+├── assets/                     # Repository assets (Banner, Screenshots)
 ├── frontend/                   # Zero-build static frontend
 │   ├── index.html              # Modern Landing Page
 │   ├── login.html              # Authentication
 │   ├── register.html           # Role-based Registration
 │   ├── dashboard-passenger.html # Passenger Hub
-│   ├── dashboard-cab.html       # Driver Hub (Cab)
-│   ├── dashboard-bus.html       # Driver Hub (Bus)
 │   ├── css/style.css           # Premium Glassmorphism Design System
 │   └── js/                     # Modular Logic
-│       ├── app.js              # Core Utils & Auth
-│       ├── passenger.js        # Passenger Orchestrator
-│       ├── cab.js              # Cab Driver Logic
-│       └── bus.js              # Bus Driver Logic
 │
 └── backend/                    # Node.js API
     ├── server.js               # Entry Point
     ├── seed.js                 # Database Seeder
     ├── models/                 # Mongoose Schemas
     ├── routes/                 # Express Controllers
-    ├── middleware/             # Auth & RBAC
     └── sockets/                # Real-time Handlers
 ```
 </details>
@@ -115,9 +122,9 @@ RideFlux/
 git clone https://github.com/yourusername/RideFlux.git
 cd RideFlux
 
-# Install Backend Dependencies
-cd backend
+# Install Dependencies (Root & Backend)
 npm install
+npm run backend-install
 ```
 
 ### 3. Run the Application
@@ -127,11 +134,11 @@ npm install
 npm run seed
 
 # Start the server
-npm start
+npm run dev
 ```
 
 ### 4. Launch Frontend
-Simply open `frontend/index.html` in your favorite browser or use the **Live Server** extension in VS Code.
+Simply open `frontend/index.html` in your browser or use a live server extension.
 
 ---
 
@@ -166,50 +173,7 @@ Simply open `frontend/index.html` in your favorite browser or use the **Live Ser
 | POST | `/api/cab/accept/:rideId` | Cab Driver |
 | POST | `/api/cab/start/:rideId` | Cab Driver |
 | POST | `/api/cab/complete/:rideId` | Cab Driver |
-| PUT | `/api/cab/availability` | Cab Driver |
-| GET | `/api/cab/available` | Cab Driver |
-| GET | `/api/cab/history` | Any Auth |
 </details>
-
-<details>
-<summary><b>View Bus Service Endpoints</b></summary>
-
-| Method | Endpoint | Access |
-| :--- | :--- | :--- |
-| GET | `/api/bus/search` | Public |
-| POST | `/api/bus/book` | Passenger |
-| GET | `/api/bus/my-routes` | Bus Driver |
-| GET | `/api/bus/manifest/:routeId` | Bus Driver |
-</details>
-
----
-
-## 📡 Socket.io Events
-
-<details>
-<summary><b>View Real-time Events</b></summary>
-
-| Event | Direction | Description |
-| :--- | :--- | :--- |
-| `join-ride-room` | Client → Server | Joins ride-specific private room |
-| `send-message` | Client → Server | Dispatches chat message |
-| `receive-message` | Server → Client | Delivers chat message to peer |
-| `ride-accepted` | Client → Server | Transitions ride to 'Accepted' state |
-| `ride-started` | Client → Server | Validates OTP and starts journey |
-| `ride-completed` | Client → Server | Finalizes ride and payment |
-</details>
-
----
-
-## 🌍 Deployment
-
-### Backend → Render.com
-- Set environment variables in Render dashboard.
-- Update `MONGO_URI` to your MongoDB Atlas connection string.
-
-### Frontend → Vercel / Netlify
-- Deploy the `frontend/` folder as a static site.
-- Update `API_URL` and `SOCKET_URL` in `frontend/js/app.js` to point to your live backend.
 
 ---
 
