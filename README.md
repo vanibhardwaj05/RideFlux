@@ -131,11 +131,9 @@ npm run seed  # Create test accounts
 npm run dev   # Start the backend engine
 ```
 
----
+## 🎯 Final Thoughts
 
-<div align="center">
-  **RideFlux** was built to simplify how we move through the world. By combining secure data with instant communication, we’ve created a professional ecosystem for riders and captains alike.
+**RideFlux** was built to simplify how we move through the world. By combining secure data with instant communication, we’ve created a professional ecosystem for riders and captains alike.
 
-  Built with ❤️ for the future of mobility.
-</div>
+Built with ❤️ for the future of mobility.
 
